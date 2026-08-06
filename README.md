@@ -12,7 +12,7 @@
 정보통신공사 현장의 **공정사진**을 쉽게 촬영하고 관리하는 웹 앱입니다.
 
 ### 📱 접근
-https://kimdo750-ui.github.io/ICT/공정사진/
+https://kimdo750-ui.github.io/ICT/photo/
 
 ### 기능
 - **작업 전/중/후** 3단계 사진 촬영
@@ -44,7 +44,7 @@ python -m http.server 8000
 .
 ├── docs/
 │   ├── index.html                 # 메인 포트폴리오
-│   └── 공정사진/
+│   └── photo/
 │       └── index.html             # 공정사진 촬영앱
 ├── 공정사진촬영웹/                 # 웹앱 소스 코드
 ├── 정보통신설비-점검표-작성도구.html  # 메인 페이지 원본

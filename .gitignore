@@ -1,0 +1,12 @@
+# 로컬 원본 소스 (docs에만 배포)
+img/
+공정사진촬영웹/
+portfolio.pdf
+sample.pdf
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

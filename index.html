@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>정보통신설비 점검표 작성 도구 — 김동일</title>
+<meta name="description" content="정보통신설비 유지보수·관리기준 별지 제2호·제3호 법정 서식을 현장에서 바로 작성하고 인쇄하는 도구. 34개 설비 점검항목 내장.">
+<meta property="og:title" content="정보통신설비 점검표 작성 도구">
+<meta property="og:description" content="별지 제2호·제3호 법정 서식 자동 생성 · 현장 모바일 입력 · 5년 보존 기록 관리">
+<style>
+:root{
+  --ink:#12171B; --ink2:#2A343C; --paper:#F4F6F2; --card:#fff;
+  --line:#DDE1DA; --line2:#EDEFEA; --steel:#68737D;
+  --ok:#0E6B4C; --bad:#BF2A1B; --na:#8C959D;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  background:var(--paper);color:var(--ink);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+a{color:inherit}
+
+/* 헤더 */
+.hero{background:var(--ink);color:#fff;padding:52px 0 42px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.3em;color:#8B98A2;margin-bottom:18px}
+h1{font-size:clamp(28px,6vw,44px);font-weight:900;letter-spacing:-.035em;line-height:1.14}
+.lead{color:#B7C1C8;margin-top:14px;font-size:clamp(14px,2.6vw,17px);font-weight:300;letter-spacing:-.01em}
+.chips{display:flex;gap:7px;margin-top:24px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:800;padding:6px 12px;border-radius:6px}
+.c1{background:var(--ok);color:#fff}.c2{background:var(--bad);color:#fff}.c3{background:#4A555E;color:#CFD6DA}
+.cta{display:flex;gap:10px;margin-top:30px;flex-wrap:wrap}
+.btn{display:inline-block;padding:15px 24px;border-radius:9px;text-decoration:none;
+  font-weight:800;font-size:15px;letter-spacing:-.01em;transition:transform .12s}
+.btn:active{transform:translateY(1px)}
+.btn-p{background:#fff;color:var(--ink)}
+.btn-s{background:transparent;color:#fff;border:1.5px solid #4A555E}
+.by{margin-top:30px;padding-top:18px;border-top:1px solid #333D45;font-size:13px;color:#93A0AA}
+.by b{color:#fff;font-weight:800;font-size:15px;letter-spacing:-.02em}
+
+/* 섹션 */
+section{padding:44px 0 0}
+h2{font-size:13px;font-weight:900;letter-spacing:.16em;padding-bottom:9px;
+  border-bottom:2px solid var(--ink);margin-bottom:20px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2 em{font-style:normal;font-weight:400;color:var(--steel);letter-spacing:0;font-size:12px;margin-left:auto}
+
+dl.rail{border-top:1px solid var(--line)}
+dl.rail>div{display:grid;grid-template-columns:96px 1fr;gap:14px;
+  padding:12px 0;border-bottom:1px solid var(--line2)}
+dl.rail dt{font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--steel);padding-top:2px}
+dl.rail dd{font-size:14.5px}
+dl.rail dd b{font-weight:800}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.two h3{font-size:13px;font-weight:900;letter-spacing:.05em;margin-bottom:9px;
+  padding-left:10px;border-left:3px solid var(--bad)}
+.two .s h3{border-left-color:var(--ok)}
+.two p{font-size:14.5px;color:#252C33}
+.two p+p{margin-top:11px}
+
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--steel);
+  padding:0 0 9px;border-bottom:1px solid var(--line)}
+td{padding:12px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+td.k{width:170px;font-weight:800;padding-right:18px}
+
+.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.shot img{width:100%;display:block;border:1px solid var(--line);border-radius:8px;background:#fff}
+.cap{font-size:12.5px;color:var(--steel);margin-top:9px;line-height:1.5}
+.cap b{display:block;color:var(--ink);font-weight:800;font-size:13.5px;margin-bottom:2px}
+.sheet{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff}
+.sheet img{width:100%;display:block;border:1px solid var(--line2)}
+
+.ok-i{color:var(--ok);font-weight:900}
+.pend{color:var(--bad);font-weight:900}
+.tags{margin-top:14px}
+.tag{display:inline-block;font-size:12.5px;font-weight:700;background:#fff;
+  border:1px solid var(--line);border-radius:5px;padding:5px 10px;margin:0 5px 6px 0}
+
+footer{margin-top:52px;background:var(--ink);color:#8B98A2;padding:30px 0 40px;font-size:12.5px;line-height:1.7}
+footer b{color:#fff}
+.disc{border-top:1px solid #333D45;margin-top:16px;padding-top:14px;font-size:11.5px;color:#77848D}
+
+@media(max-width:640px){
+  .two{grid-template-columns:1fr;gap:20px}
+  .shots{grid-template-columns:1fr}
+  dl.rail>div{grid-template-columns:1fr;gap:3px}
+  td.k{width:120px;padding-right:12px}
+  .cta .btn{flex:1;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div class="hero"><div class="wrap">
+  <div class="eyebrow">실무 도구 · FIELD TOOL</div>
+  <h1>정보통신설비<br>점검표 작성 도구</h1>
+  <p class="lead">별지 제2호·제3호 법정 서식 자동 생성 · 현장 모바일 입력 · 5년 보존 기록 관리</p>
+  <div class="chips"><span class="chip c1">적합 ㅇ</span><span class="chip c2">부적합 X</span><span class="chip c3">해당없음 —</span></div>
+  <div class="cta">
+    <a class="btn btn-p" href="tool.html">도구 실행하기</a>
+    <a class="btn btn-s" href="portfolio.pdf">포트폴리오 PDF</a>
+    <a class="btn btn-s" href="sample.pdf">출력 서식 샘플</a>
+  </div>
+  <div class="by"><b>김동일</b> &nbsp;정보통신기술자 고급 (2026년 3월 취득) · 유지보수·관리자 인정교육 제17기 수강 예정</div>
+</div></div>
+
+<div class="wrap">
+
+<section>
+  <h2>제도 배경<em>정보통신공사업법 제37조의2·3 / 과기정통부 고시 「정보통신설비 유지보수·관리기준」</em></h2>
+  <dl class="rail">
+    <div><dt>대상</dt><dd>연면적 <b>5,000㎡ 이상</b> 건축물 — 3만㎡ 이상 <b>2025.7</b> / 1만~3만㎡ <b>2026.7</b> / 5천~1만㎡ <b>2027.7</b> 단계 시행</dd></div>
+    <div><dt>선임</dt><dd>관리주체는 인정교육을 이수한 기술계 정보통신기술자를 <b>유지보수·관리자로 선임</b>하고 지자체에 신고. 1인 <b>최대 5개 건축물</b> 중복 선임 가능</dd></div>
+    <div><dt>점검 주기</dt><dd>유지보수·관리 점검 <b>반기 1회 이상</b>(별지 제2호서식) / 성능점검 <b>연 1회 이상</b>(별지 제3호서식)</dd></div>
+    <div><dt>기록 의무</dt><dd>점검표 <b>5년 보존</b>, 시·군·구청장 요청 시 제출. 미선임·미점검 시 과태료 부과</dd></div>
+  </dl>
+</section>
+
+<section>
+  <h2>왜 만들었나</h2>
+  <div class="two">
+    <div>
+      <h3>문제</h3>
+      <p>점검대상은 <b>34개 설비</b>이고, 설비 하나당 외관·기능·안전 항목이 최대 20여 개다. 건물 한 곳을 점검하면 손으로 옮겨 적어야 할 행이 수백 개가 된다.</p>
+      <p>실무는 현장에서 종이에 적고 사무실에서 한글 서식에 다시 입력하는 <b>이중 작업</b>이다. 옮겨 적는 과정에서 부적합 사유가 빠지면, 그 자체가 서류 흠결로 남는다. 나중에 문제가 생기면 이 서류로 책임을 가린다.</p>
+    </div>
+    <div class="s">
+      <h3>해결</h3>
+      <p>건축물 정보와 설비만 고르면 <b>해설서 원문 점검항목이 자동으로 전개</b>된다. 전 항목의 기본값은 '적합'이고, 실제로 손대야 하는 것은 부적합뿐이다.</p>
+      <p>부적합을 선택한 순간에만 사유 입력창이 열리고, 사유가 비어 있으면 결과 화면에서 <b>경고로 잡아낸다</b>. 현장에서 휴대폰으로 끝내고 그대로 법정 서식으로 인쇄한다.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>주요 기능</h2>
+  <table>
+    <tr><th style="width:170px">기능</th><th>설명</th></tr>
+    <tr><td class="k">서식 자동 전개</td><td>34개 설비 × 유지보수·관리 / 성능점검 2종. 설비 선택만으로 해당 점검항목 전체 생성</td></tr>
+    <tr><td class="k">기본값 적합 · 예외 입력</td><td>전 항목 '적합' 선점. 부적합 선택 시에만 사유란 노출, 미기재 항목은 결과 화면에서 경고 표시</td></tr>
+    <tr><td class="k">부적합만 보기</td><td>점검 후 부적합 항목만 필터링. 설비 탭에 빨간 점으로 미해결 표시</td></tr>
+    <tr><td class="k">법정 서식 인쇄</td><td>별지 제2호(점검항목·점검내용·점검결과·비고) / 제3호(부적합사항·조치사항·현황사진란) 구조 그대로 출력</td></tr>
+    <tr><td class="k">기록 보존</td><td>localStorage 이력 저장 + JSON 내보내기 + 요약 텍스트 복사</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>화면</h2>
+  <div class="shots">
+    <div class="shot"><img src="img/setup.png" alt="점검 정보 입력 화면">
+      <div class="cap"><b>1. 점검 정보</b>점검 종류·건축물·점검자 입력 후 대상 설비 선택</div></div>
+    <div class="shot"><img src="img/check.png" alt="현장 점검 화면">
+      <div class="cap"><b>2. 현장 점검</b>3단 판정 스위치. 부적합 시 행 전체가 붉게 전환되고 사유란이 열림</div></div>
+    <div class="shot"><img src="img/result.png" alt="결과 화면">
+      <div class="cap"><b>3. 결과·서식</b>적합/부적합/해당없음 집계와 부적합 목록, 인쇄·내보내기</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>산출물<em>별지 제2호서식 · 단자함 설비 유지보수·관리 점검표 (실제 인쇄 출력)</em></h2>
+  <div class="sheet"><img src="img/sheet.png" alt="별지 제2호서식 출력 결과"></div>
+  <p class="cap">설비 6종을 선택하면 6장이 연속 생성된다. 점검자·설치위치·설치업체·건축물 정보는 전 서식에 자동 반영되고, 설비별로 위치가 다르면 개별 수정할 수 있다. 부적합 항목의 비고란에는 현장에서 입력한 사유가 그대로 들어간다.</p>
+</section>
+
+<section>
+  <h2>데이터 출처 및 검증</h2>
+  <table>
+    <tr><th style="width:170px">구분</th><th>내용</th></tr>
+    <tr><td class="k">항목 원본</td><td>과학기술정보통신부 「정보통신설비 유지보수·관리 및 성능점검 업무 해설서」(2025년 8월) 제4장·제5장 — 34개 설비 전 항목</td></tr>
+    <tr><td class="k">서식 구조 대조</td><td><span class="ok-i">완료</span> — 점검결과 표기(ㅇ/X/—), 부적합 시 사유·조치 기재 의무, 여건에 따른 항목 추가·변경 허용 조항까지 별지 원본과 일치 확인</td></tr>
+    <tr><td class="k">유지보수·관리 점검표</td><td><span class="ok-i">34개 설비 전체</span> 해설서 원문 항목 반영</td></tr>
+    <tr><td class="k">성능점검표</td><td><span class="ok-i">19개 설비</span> 원문 반영 완료 / <span class="pend">15개 설비</span> 공통 점검 패턴 기반 초안 — 인정교육(2026.9.30~10.2) 배포 정식 서식과 대조 후 확정 예정</td></tr>
+  </table>
+  <p class="cap">해설서는 설명본이고 제출 원본은 고시 별지 서식이다. 두 문서의 차이 가능성을 전제로 데이터를 설비별·항목별로 분리해 두었기 때문에, 정식 서식 확인 후 다른 부분만 교체하면 된다.</p>
+</section>
+
+<section>
+  <h2>구현</h2>
+  <dl class="rail">
+    <div><dt>형태</dt><dd>단일 HTML 파일 · 외부 라이브러리 의존성 0 · 설치 불필요</dd></div>
+    <div><dt>동작 환경</dt><dd>오프라인 동작. 지하 통신실·기계실 등 통신이 끊기는 현장을 전제로 설계</dd></div>
+    <div><dt>구성</dt><dd>Vanilla JS 상태 관리 · localStorage 이력 · 인쇄 전용 CSS로 화면 UI와 법정 서식 분리 렌더링</dd></div>
+    <div><dt>화면</dt><dd>모바일 우선. 한 손 조작 기준의 터치 영역, 스티키 설비 탭, 하단 고정 진행률 바</dd></div>
+  </dl>
+  <div class="tags">
+    <span class="tag">Vanilla JS</span><span class="tag">HTML / CSS</span><span class="tag">Google Apps Script</span><span class="tag">Python</span><span class="tag">Excel VBA</span><span class="tag">GitHub Pages</span><span class="tag">인쇄 서식 자동화</span>
+  </div>
+</section>
+
+</div>
+
+<footer><div class="wrap">
+  <b>김동일</b> · 정보통신기술자 고급 (2026년 3월, 한국정보통신공사협회 경력수첩)<br>
+  선임 가능 범위 : 연면적 60,000㎡ 이하 건축물 · 동일 지역 내 최대 5개소 중복 선임<br>
+  정보통신설비 유지보수·관리자 인정교육 제17기 수강 예정 (2026.9.30~10.2, ICT폴리텍대학)
+  <div class="disc">본 도구는 과학기술정보통신부 해설서(2025.8)를 기준으로 제작한 개인 실무 도구이며, 제출용 정식 서식은 「정보통신설비 유지보수·관리기준」 고시 별지 원본을 따릅니다. 실제 현장 적용 시 관할 지자체가 별도 양식을 요구할 수 있습니다. 입력한 점검 데이터는 서버로 전송되지 않으며 사용자 기기 안에만 저장됩니다.</div>
+</div></footer>
+
+</body>
+</html>

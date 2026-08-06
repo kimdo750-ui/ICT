@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>정보통신설비 점검표 작성 도구</title>
+<style>
+:root{
+  --ink:#12171B; --ink2:#2A343C; --paper:#F4F6F2; --card:#FFFFFF;
+  --line:#DDE1DA; --line2:#EDEFEA; --steel:#68737D;
+  --ok:#0E6B4C; --ok-bg:#E6F1EB; --bad:#BF2A1B; --bad-bg:#FBE9E6;
+  --na:#8C959D; --na-bg:#ECEEEB; --amber:#A96B08;
+  --r:10px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  background:var(--paper); color:var(--ink); font-size:15px; line-height:1.5;
+  padding-bottom:96px;
+}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px}
+
+/* ── 헤더 ── */
+header{background:var(--ink);color:#fff;padding:16px 0 14px;position:sticky;top:0;z-index:40}
+header .wrap{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+header h1{margin:0;font-size:16px;font-weight:800;letter-spacing:-.02em}
+header .sub{font-size:11.5px;color:#93A0AA;letter-spacing:.01em}
+.steps{display:flex;gap:2px;margin-top:12px}
+.steps button{
+  flex:1;background:transparent;border:0;border-bottom:2px solid #333D45;color:#7E8A94;
+  font:600 12.5px/1 inherit;padding:9px 2px 8px;cursor:pointer;letter-spacing:-.01em
+}
+.steps button.on{color:#fff;border-bottom-color:#fff}
+.steps button:disabled{opacity:.35;cursor:default}
+
+/* ── 공통 ── */
+section{display:none;padding-top:18px}
+section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:12px}
+.card h2{margin:0 0 12px;font-size:13px;font-weight:800;letter-spacing:.02em;color:var(--ink2);
+  text-transform:none;display:flex;align-items:center;gap:8px}
+.card h2::before{content:"";width:3px;height:13px;background:var(--ink);border-radius:2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid .full{grid-column:1/-1}
+label{display:block;font-size:11.5px;font-weight:700;color:var(--steel);margin-bottom:5px;letter-spacing:.01em}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:8px;
+  font:inherit;font-size:14.5px;background:#fff;color:var(--ink)
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ink);outline-offset:-1px;border-color:var(--ink)}
+textarea{resize:vertical;min-height:62px}
+.hint{font-size:11.5px;color:var(--steel);margin:8px 0 0;line-height:1.45}
+
+/* ── 점검종류 ── */
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.kind{border:1.5px solid var(--line);border-radius:9px;padding:12px;cursor:pointer;background:#fff;text-align:left}
+.kind.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.kind b{display:block;font-size:13.5px;font-weight:800}
+.kind span{font-size:11px;opacity:.72;display:block;margin-top:3px}
+
+/* ── 설비 선택 ── */
+.eqbar{display:flex;gap:7px;margin-bottom:10px}
+.eqbar input{flex:1}
+.btn-s{border:1px solid var(--line);background:#fff;border-radius:8px;padding:0 12px;
+  font:700 12.5px/1 inherit;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.eqlist{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:52vh;overflow:auto;
+  border:1px solid var(--line2);border-radius:8px;padding:7px;background:#FBFCFA}
+.eq{display:flex;align-items:center;gap:8px;padding:9px 9px;border:1px solid transparent;
+  border-radius:7px;font-size:13px;cursor:pointer;background:#fff;line-height:1.3}
+.eq.on{border-color:var(--ink);background:#F0F3EF;font-weight:700}
+.eq i{width:16px;height:16px;border:1.5px solid #B9C0B7;border-radius:4px;flex:none;display:block;position:relative}
+.eq.on i{background:var(--ink);border-color:var(--ink)}
+.eq.on i::after{content:"";position:absolute;left:4.5px;top:1px;width:4px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+
+/* ── 점검 화면 ── */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:9px 0;position:sticky;top:var(--hdr,96px);z-index:30;
+  background:var(--paper);border-bottom:1px solid var(--line);margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.tab{flex:none;border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 13px;
+  font:600 12.5px/1 inherit;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:6px}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab .dot{width:6px;height:6px;border-radius:50%;background:var(--bad);display:none}
+.tab.has .dot{display:block}
+
+.group{margin-bottom:8px}
+.group-h{font-size:11px;font-weight:800;color:var(--steel);letter-spacing:.08em;
+  padding:12px 2px 6px;border-bottom:1px solid var(--line2);margin-bottom:8px}
+.item{background:#fff;border:1px solid var(--line);border-left:3px solid var(--line);
+  border-radius:9px;padding:12px 13px;margin-bottom:7px}
+.item.x{border-left-color:var(--bad);background:var(--bad-bg)}
+.item.o{border-left-color:var(--ok)}
+.item.n{border-left-color:var(--na);opacity:.72}
+.item p{margin:0 0 10px;font-size:14px;line-height:1.45;letter-spacing:-.01em}
+.sw{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.sw button{
+  border:1.5px solid var(--line);background:#fff;border-radius:7px;padding:11px 4px;
+  font:800 13px/1 inherit;color:var(--steel);cursor:pointer;letter-spacing:.02em;
+  display:flex;align-items:center;justify-content:center;gap:5px
+}
+.sw .sym{font-size:13px;line-height:1}
+.sw button[data-v="O"].on{background:var(--ok);border-color:var(--ok);color:#fff}
+.sw button[data-v="X"].on{background:var(--bad);border-color:var(--bad);color:#fff}
+.sw button[data-v="-"].on{background:var(--na);border-color:var(--na);color:#fff}
+.note{margin-top:9px;display:none}
+.item.x .note{display:block}
+.note textarea{border-color:#E2A79E;background:#fff;min-height:56px;font-size:14px}
+.note label{color:var(--bad)}
+
+/* ── 하단바 ── */
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(18,23,27,.97);
+  backdrop-filter:blur(6px);color:#fff;z-index:50;padding:10px 0 max(10px,env(safe-area-inset-bottom))}
+.bar .wrap{display:flex;align-items:center;gap:12px}
+.bar .meter{flex:1;min-width:0}
+.bar .nums{display:flex;gap:14px;font-size:11.5px;color:#9AA6AF;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.bar .nums b{color:#fff;font-weight:800}
+.bar .nums .r b{color:#FF8A76}
+.track{height:4px;background:#333D45;border-radius:3px;overflow:hidden}
+.track i{display:block;height:100%;background:#fff;width:0;transition:width .25s}
+.go{border:0;border-radius:9px;background:#fff;color:var(--ink);font:800 14px/1 inherit;
+  padding:14px 20px;cursor:pointer;white-space:nowrap}
+.go.ghost{background:transparent;color:#fff;border:1.5px solid #4A555E}
+.go:disabled{opacity:.4;cursor:default}
+
+/* ── 결과 ── */
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:9px;padding:13px 12px}
+.stat b{display:block;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.stat span{font-size:11px;color:var(--steel);font-weight:700}
+.stat.bad b{color:var(--bad)}
+.stat.ok b{color:var(--ok)}
+.fail{border-left:3px solid var(--bad);background:#fff;border:1px solid var(--line);
+  border-left:3px solid var(--bad);border-radius:8px;padding:11px 12px;margin-bottom:7px}
+.fail .e{font-size:10.5px;font-weight:800;color:var(--bad);letter-spacing:.04em}
+.fail .t{font-size:13.5px;margin:3px 0 4px;font-weight:600}
+.fail .n{font-size:12.5px;color:var(--steel);white-space:pre-wrap}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.acts .go{background:var(--ink);color:#fff;padding:14px 10px;font-size:13.5px}
+.acts .go.alt{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.hist{background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px 12px;margin-bottom:7px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hist .m{font-size:13px;font-weight:700}
+.hist .d{font-size:11.5px;color:var(--steel);margin-top:2px}
+.empty{text-align:center;color:var(--steel);font-size:13px;padding:26px 10px}
+
+/* ── 인쇄용 서식 ── */
+#sheet{display:none}
+@media print{
+  body{background:#fff;padding:0}
+  header,.bar,.tabs,section,.noprint{display:none!important}
+  #sheet{display:block!important}
+  .pg{page-break-after:always;padding:0 0 10mm}
+  .pg:last-child{page-break-after:auto}
+  .pg h3{font-size:14pt;text-align:center;margin:0 0 8pt;font-weight:800}
+  table{width:100%;border-collapse:collapse;font-size:9pt}
+  th,td{border:1px solid #000;padding:3pt 4pt;vertical-align:middle}
+  th{background:#EEE;font-weight:700;text-align:center}
+  td.c{text-align:center;width:46pt}
+  td.g{text-align:center;width:36pt;font-weight:700;writing-mode:vertical-rl;letter-spacing:2pt}
+  .meta{margin-bottom:6pt}
+  .note-b{margin-top:6pt;font-size:8pt;line-height:1.5}
+}
+@media (min-width:560px){ .eqlist{grid-template-columns:1fr 1fr 1fr} }
+
+/* ══════════ 모바일 (≤640px) — 데스크톱 레이아웃은 그대로 둠 ══════════ */
+@media (max-width:640px){
+  body{font-size:16px;padding-bottom:112px}
+  .wrap{padding:0 12px}
+
+  /* 헤더 : 줄바꿈으로 높이가 튀지 않게 고정, 스텝은 가로 스크롤 */
+  header{padding:12px 0 0}
+  header .wrap{gap:6px}
+  header h1{font-size:15px}
+  header .sub{display:none}
+  .steps{margin-top:9px;overflow-x:auto;gap:0;scrollbar-width:none}
+  .steps::-webkit-scrollbar{display:none}
+  .steps button{flex:0 0 auto;white-space:nowrap;padding:10px 14px 9px;font-size:13px}
+
+  /* 카드 */
+  .card{padding:14px 13px;margin-bottom:10px;border-radius:12px}
+  .card h2{font-size:14px}
+  label{font-size:12.5px;margin-bottom:6px}
+  input[type=text],input[type=date],input[type=number],select,textarea{
+    font-size:16px;padding:12px 12px;border-radius:9px}   /* 16px 미만이면 iOS가 화면을 확대함 */
+  .grid{grid-template-columns:1fr;gap:11px}
+  .hint{font-size:12.5px}
+
+  /* 점검 종류 */
+  .kinds{grid-template-columns:1fr;gap:8px}
+  .kind{padding:14px}
+  .kind b{font-size:15px}
+  .kind span{font-size:12.5px}
+
+  /* 설비 선택 : 안쪽 스크롤 제거(페이지 스크롤과 충돌), 한 줄 한 항목, 높이 균일 */
+  .eqbar{flex-wrap:wrap;gap:8px}
+  .eqbar input{flex:1 1 100%;order:1}
+  .eqbar .btn-s{flex:1 1 0;order:2;padding:11px 12px;font-size:14px}
+  .eqlist{
+    grid-template-columns:1fr;gap:0;max-height:none;overflow:visible;
+    border:0;padding:0;background:transparent}
+  .eq{
+    min-height:54px;padding:0 4px;border-radius:0;border:0;
+    border-bottom:1px solid var(--line2);background:transparent;
+    font-size:15.5px;gap:12px;line-height:1.35}
+  .eq:last-child{border-bottom:0}
+  .eq.on{background:#EEF2EC;border:0;border-bottom:1px solid var(--line2);
+    border-left:3px solid var(--ink);padding-left:9px}
+  .eq i{width:22px;height:22px;border-radius:5px;border-width:2px}
+  .eq.on i::after{left:6.5px;top:2px;width:5px;height:11px;border-width:0 2.5px 2.5px 0}
+
+  /* 설비 탭 */
+  .tabs{padding:8px 0;gap:7px}
+  .tab{padding:9px 14px;font-size:13.5px}
+
+  /* 점검 항목 : 판정 버튼을 기호 위 / 글자 아래로 세워 터치 영역 확보 */
+  .item{padding:14px 13px;border-radius:11px;border-left-width:4px}
+  .item p{font-size:15.5px;margin-bottom:12px;line-height:1.5}
+  .group-h{font-size:12px;padding:14px 2px 7px}
+  .sw{gap:7px}
+  .sw button{
+    flex-direction:column-reverse;gap:4px;padding:11px 2px;
+    font-size:13.5px;border-radius:9px;min-height:58px}
+  .sw .sym{font-size:17px}
+  .note textarea{font-size:16px;min-height:76px}
+  .note label{font-size:12.5px}
+
+  /* 하단바 */
+  .bar{padding:11px 0 max(12px,env(safe-area-inset-bottom))}
+  .bar .wrap{gap:11px}
+  .bar .nums{font-size:12.5px;margin-bottom:7px}
+  .go{padding:15px 20px;font-size:15px;border-radius:10px}
+
+  /* 결과 */
+  .sum{gap:7px}
+  .stat{padding:12px 10px}
+  .stat b{font-size:24px}
+  .stat span{font-size:11.5px}
+  .fail .t{font-size:14.5px}
+  .fail .n{font-size:13.5px}
+  .acts{grid-template-columns:1fr;gap:9px}
+  .acts .go{padding:15px 12px;font-size:15px}
+  .hist{padding:13px 12px}
+  .hist .m{font-size:14.5px}
+  .hist .d{font-size:12.5px}
+  .empty{font-size:14.5px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>정보통신설비 점검표 작성 도구</h1>
+    <div class="sub">정보통신설비 유지보수·관리기준 · 별지 제2호 / 제3호 서식</div>
+  </div>
+  <div class="wrap">
+    <div class="steps">
+      <button id="t0" class="on" onclick="go(0)">1. 점검 정보</button>
+      <button id="t1" onclick="go(1)" disabled>2. 현장 점검</button>
+      <button id="t2" onclick="go(2)" disabled>3. 결과·서식</button>
+      <button id="t3" onclick="go(3)">이력</button>
+    </div>
+  </div>
+</header>
+
+<!-- ══ 1. 설정 ══ -->
+<section id="s0" class="on"><div class="wrap">
+  <div class="card">
+    <h2>점검 종류</h2>
+    <div class="kinds">
+      <button class="kind on" data-k="maint" onclick="setKind('maint')">
+        <b>유지보수·관리 점검</b><span>반기 1회 이상 · 별지 제2호서식</span></button>
+      <button class="kind" data-k="perf" onclick="setKind('perf')">
+        <b>성능점검</b><span>연 1회 이상 · 별지 제3호서식</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>건축물 및 점검자</h2>
+    <div class="grid">
+      <div class="full"><label>건축물 명칭</label><input type="text" id="f_bld" placeholder="○○빌딩"></div>
+      <div class="full"><label>소재지</label><input type="text" id="f_addr" placeholder="경기도 양주시 ..."></div>
+      <div><label>연면적 (㎡)</label><input type="number" id="f_area" placeholder="12000"></div>
+      <div><label>점검일자</label><input type="date" id="f_date"></div>
+      <div><label>점검자</label><input type="text" id="f_insp" placeholder="성명"></div>
+      <div><label id="l_second">설치업체</label><input type="text" id="f_second" placeholder="업체명"></div>
+      <div class="full"><label>설치위치</label><input type="text" id="f_loc" placeholder="지하1층 통신실 등"></div>
+    </div>
+    <p class="hint">점검자·설치업체·설치위치는 모든 설비 서식에 자동으로 들어갑니다. 설비별로 위치가 다르면 점검 화면에서 개별 수정하세요.</p>
+  </div>
+
+  <div class="card">
+    <h2>점검 대상 설비 <span id="eqcount" style="margin-left:auto;font-weight:700;color:var(--steel);font-size:11.5px"></span></h2>
+    <div class="eqbar">
+      <input type="text" id="eqfind" placeholder="설비명 검색" oninput="renderEq()">
+      <button class="btn-s" onclick="pick('all')">전체</button>
+      <button class="btn-s" onclick="pick('none')">해제</button>
+    </div>
+    <div class="eqlist" id="eqlist"></div>
+    <p class="hint">「정보통신설비 유지보수·관리기준」 별표 1의 점검대상 34개 설비입니다. 해당 건축물에 설치된 설비만 고르세요.</p>
+  </div>
+</div></section>
+
+<!-- ══ 2. 점검 ══ -->
+<section id="s1"><div class="wrap">
+  <div class="tabs" id="tabs"></div>
+  <div class="card" style="padding:12px 13px">
+    <div class="grid">
+      <div><label>설치위치 (이 설비)</label><input type="text" id="f_eqloc" oninput="setEqLoc(this.value)"></div>
+      <div><label id="l_eqsecond">설치업체 (이 설비)</label><input type="text" id="f_eqsecond" oninput="setEqSecond(this.value)"></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:9px;margin:2px 0 12px">
+    <button class="btn-s" id="onlyX" onclick="toggleOnly()" style="padding:9px 13px">부적합만 보기</button>
+    <button class="btn-s" onclick="resetTab()" style="padding:9px 13px">이 설비 초기화</button>
+  </div>
+  <div id="items"></div>
+</div></section>
+
+<!-- ══ 3. 결과 ══ -->
+<section id="s2"><div class="wrap">
+  <div class="sum">
+    <div class="stat ok"><b id="n_ok">0</b><span>적합</span></div>
+    <div class="stat bad"><b id="n_bad">0</b><span>부적합</span></div>
+    <div class="stat"><b id="n_na">0</b><span>해당없음</span></div>
+  </div>
+  <div class="card">
+    <h2>부적합 항목</h2>
+    <div id="fails"></div>
+  </div>
+  <div class="card">
+    <h2>내보내기</h2>
+    <div class="acts">
+      <button class="go" onclick="doPrint()">서식 인쇄 / PDF</button>
+      <button class="go alt" onclick="saveRec()">이력에 저장</button>
+      <button class="go alt" onclick="expJSON()">JSON 내보내기</button>
+      <button class="go alt" onclick="expText()">요약 복사</button>
+    </div>
+    <p class="hint">인쇄 시 선택한 설비별로 별지 서식이 한 장씩 생성됩니다. 점검 기록은 5년간 보존해야 하며, 지자체 요청 시 제출 대상입니다.</p>
+  </div>
+</div></section>
+
+<!-- ══ 이력 ══ -->
+<section id="s3"><div class="wrap">
+  <div class="card">
+    <h2>점검 이력</h2>
+    <div id="histlist"></div>
+    <p class="hint">이 기기(브라우저)에만 저장됩니다. 법정 보존은 인쇄본 또는 JSON 백업으로 관리하세요.</p>
+  </div>
+</div></section>
+
+<div class="bar noprint"><div class="wrap">
+  <div class="meter">
+    <div class="nums">
+      <span>진행 <b id="b_prog">0</b> / <b id="b_tot">0</b></span>
+      <span class="r">부적합 <b id="b_bad">0</b></span>
+    </div>
+    <div class="track"><i id="b_fill"></i></div>
+  </div>
+  <button class="go" id="b_next" onclick="next()">시작</button>
+</div></div>
+
+<div id="sheet"></div>
+
+<script>
+"use strict";
+/* ────────── 점검항목 데이터 : 과기정통부「정보통신설비 유지보수·관리 및 성능점검 업무 해설서」(2025.8) ────────── */
+var A1="외관 상태 점검(오염, 부식, 손상, 파손 등)",
+A2="기기 연결 케이블 및 커넥터 상태 확인",
+A3="고정 및 취부 상태 확인",
+A4="작동 표시부 확인(LCD, LED 등)",
+A5="주변기기(모니터, 키보드, 마우스 등) 상태 확인",
+S1="설치 환경 확인(먼지, 습도, 온도 등)",
+S2="전원 단자 및 연결 상태 확인",
+S3="이상 발열 및 소음 상태 확인",
+S4="예비전원(UPS 또는 발전기) 배선 및 연결 상태 확인",
+S5="접지저항 측정",
+S6="설비 설치 공간의 항온·항습장치 동작상태 확인",
+S7="설비 설치 공간의 조명설비 동작 여부 확인",
+F0="시스템 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인",
+F1="Console 연결 상태 확인",
+F2="냉각팬 동작상태 확인",
+F3="네트워크 연결 확인",
+F4="시스템 Activity 연동 확인",
+F5="저장공간 여유 확인",
+F6="시스템 사용율 확인",
+H1="하드디스크 저장 공간 확인 및 정리",
+V1="실시간 동영상 촬영 및 저장 상태 확인",
+V2="녹화 영상 재생 및 품질 확인",
+P0="유지보수·관리 및 성능점검 대상 현황표 확인",
+PA="사용자 인증(비밀번호) 설정 여부 확인",
+PB="최신 보안 패치 설치 여부 확인",
+PC="최신 펌웨어 설치 여부 확인",
+PD="백신 설치 여부 및 정상작동 상태 확인",
+PE="바이러스 및 악성코드 경고 이벤트 확인",
+PW="AC 및 DC 입력 전원 측정",
+PG="접지저항 측정",
+PV="VLAN, VPN 등 보안 기능 사용 시 설정 확인";
+var SEC=[PA,PB,PC,PD,PE];
+var SYSF=[F0,F1,F2,F3,F4,F5,F6];
+
+var EQ=[
+{n:"케이블 설비",
+ m:{a:[A1,"배관·트레이 노출 상태 확인","케이블 정리 상태 확인","케이블 결선 및 접속 상태 확인","광케이블 곡률반경 준수 및 꺾임 유무 확인","동축케이블 꼬임 등에 의한 케이블 변형 여부 확인"],f:[],s:["전력선과의 이격거리 확인",S5]},
+ p:[P0,"통과 지점 광케이블 스파이럴 슬리브 보호 여부 확인",PG],pv:1},
+{n:"배관 설비",
+ m:{a:[A1,"볼트 및 너트 등 체결 상태 확인","배관 및 트레이 상태(수평, 수직 등) 확인","내화 충전재 적정 여부 확인(트레이, 배관 등)"],f:[],s:["트레이 접지 상태 확인"]},
+ p:[P0,"케이블 수용 여유 공간 확인","배관 및 트레이 상태(수평, 수직 등) 확인",PG],pv:1},
+{n:"국선인입 설비",
+ m:{a:[A1,"맨홀 내 시설물 고정 상태 확인","맨홀 뚜껑의 결합 상태 및 파손유무 확인"],f:[],s:["맨홀 내 사다리 거치 상태 확인","맨홀·수공 양수 상태 확인","맨홀 내 가스 발생 유무 및 산소도 측정",S7,S5]},
+ p:[P0,"맨홀 내 시설물 고정 상태 확인","맨홀 뚜껑의 결합 상태 및 파손유무 확인",PG],pv:1},
+{n:"단자함 설비",
+ m:{a:[A1,"케이블 연결 상태 확인","케이블 정리 상태 확인","단자함 내 기구 및 기기 고정 상태 확인","선번장 부착 여부 및 상태 확인","케이블 명찰 부착 여부 및 상태 확인"],f:[],s:["잠금 장치 상태 확인","접지 상태 확인",S2,"재해(벼락, 침수, 강우, 분진 등) 보호 환경 확인","습도 및 온도 조절을 위한 환기 상태 확인",S5,S7]},
+ p:[P0,A1,"잠금 장치 상태 확인","단자함 내 기구 및 기기 고정 상태 확인","케이블 연결 및 정리 상태 확인",PG],pv:1},
+{n:"이동통신 구내선로 설비",
+ m:{a:[A1,A3],f:[],s:[S1,S2,S5,S7]},
+ p:[P0,"접속함 내 기구 및 기기 고정 상태 확인","잠금 장치 상태 확인","배관 예비공 가용 여부 확인",S2,S4,PG],pv:1},
+{n:"전화 설비",
+ m:{a:[A1,A2,A3,A4],f:["송·수신 통화 시 적정 음량 확인","마이크 동작 상태 확인","통화 수신 시 알람 여부 확인","통화 연결 및 품질 확인"],s:[S1,S2,S3,S5,S7]},
+ p:[P0,"통화 연결 및 품질 확인",PG,PW],pv:1},
+{n:"방송 공동수신 안테나 시설",
+ m:{a:[A1,"안테나 수직, 수평 확인",A3,"케이블 및 커넥터 연결 상태 확인",A4],f:["채널별 지상파 방송 수신 가능 여부 확인","채널별 지상파 방송 수신 상태 및 품질(육안) 확인","지하층 DMB, FM 수신 가능 여부 확인","주전원 차단 시 예비전원장치 작동 유무 확인","장치함 시건장치 정상 동작 확인"],s:["안테나와 주변 피뢰침과의 거리 확인(1미터 이상)",S2,S3,S4,S5,S6,S7]},
+ p:[P0,"출력 검사 단자의 레벨값 확인","지하 DMB, FM 수신 상태 확인","증폭기·분배기 간의 공간 확보 및 신호 간섭 확인","누설동축케이블 전계강도 측정(무선방식인 경우)","전파환경(RSRP) 측정","유휴 분배 및 분기 단자 종단저항 측정(75Ω) 확인","기기 입·출력 신호 레벨 측정","광 송·수신 레벨 측정",S4,PW,PG,"무선 신호 수신기기 수신감도 측정(무선 방식인 경우)","무선 신호 전계강도 측정(무선 방식인 경우)"],pv:1},
+{n:"종합유선방송 구내 전송선로 설비",
+ m:{a:[A1,"기기와 연결된 케이블 및 커넥터 상태 확인",A3,A4],f:["종합유선방송 수신 가능 여부 확인","종합유선방송 수신 상태 및 품질 확인",F2],s:[S1,S2,S3,S5,S6,S7]},
+ p:[P0,"출력 검사 단자의 레벨값 확인","기기 입·출력 신호 레벨 측정",PW,PG],pv:1},
+{n:"방송음향 설비",
+ m:{a:[A1,A3,A4],f:["음향 정상 송출 및 출력 여부 확인","스피커 음량 및 음질 확인","마이크 정상 동작 확인","비상 방송설비 연동 상태 유무 및 작동 여부 확인","자동안내방송시스템 동작상태 확인"],s:[S1,S2,S3,S5,S6,S7]},
+ p:[P0,"방송 송출 및 출력 시 노이즈 발생, 방송 품질 확인","출력 음향의 음량의 적정성 확인","비상방송설비 연동 상태 유무 및 작동 여부 확인",S4,PW,PG],pv:1},
+{n:"네트워크 설비",
+ m:{a:[A1,A2,A3,A4,"FDF 내 광케이블 꼬임, 꺾임 등 장애요인 확인"],f:["서버 고유 기능 정상 동작 및 모니터링 상태 확인","링크 동작 속도 확인","전면 및 후면 도어 시건장치 정상 동작 확인(시건장치가 있는 경우)","내부 환기 계통 점검(FAN 등)"],s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,PV,"광 송·수신 레벨 확인"].concat(SEC,[PW,PG]),pv:1},
+{n:"전자출입(통제) 시스템",
+ m:{a:[A1,A2,A3,A4],f:["출입통제 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인","RFID TAG를 통한 도어 열림 확인","호출버튼을 통한 도어 열림 확인","현관제어기와 연결된 기기와 음성 또는 영상 통화 가능 여부 확인","현관제어기와 연결된 기기에서 출입문 제어 가능 여부 확인","출입관리 모니터링 시스템 기록 정보의 실시간 반영 여부 확인","전면 및 후면 도어 시건장치 정상 동작 확인(시건장치가 있는 경우)","휴대전화 어플리케이션을 통한 도어 열림 기능 작동(기능이 탑재된 경우)"],s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,PV,"일정 시간 이후 자동 닫힘 및 잠금 기능 확인","수동 조작 스위치 정상 동작 여부 확인","RF카드 자기장 세기 측정","RF카드 인식거리 측정"].concat(SEC,[PW,PG]),pv:1},
+{n:"원격검침 시스템",
+ m:{a:[A1,A2,A3,A4],f:["원격검침 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인","검침기기별 실시간 사용량 확인 가능 여부 확인","검침기기와 서버 데이터의 정상 연동 여부 확인",F2],s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,"누설동축케이블 전계강도 측정","송신 출력 측정","스퓨리어스 측정","무선 신호 수신기기 수신감도 측정","무선 신호 전계강도 측정","안테나 송·수신 신호 상태 확인(무선 방식의 경우)"].concat(SEC,[PW,PG]),pv:1},
+{n:"주차관제 시스템",
+ m:{a:[A1,A2,A3,A4,"카메라부 렌즈 오염 및 파손 상태 확인"],f:["주차관제 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인","차량 감지 및 주차 차단기 개폐 정상 작동 상태 확인","수동 개폐 기능 정상 작동 확인","기기에서 지원하는 결제 수단별 요금 정산 정상 동작 여부 확인","차량번호, 요금 등 내용의 정상 표출 여부 확인(해당 기능 지원 시)","디스플레이 정보(한글, 영문, 숫자 등) 가독성 확인","호출 버튼을 통한 연결 및 음성 송·수신 상태 확인","차량 입출차 시 경보음(부저) 동작 상태 확인","차량 입출차 시 LED 점멸 동작 상태 확인",F2,"프린터 인쇄상태 확인(용지, 롤러, 벨트 등)"],s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,"주간 및 야간 차량번호 인식 여부 확인","차량 출입의 실시간 감지 및 신호 송·수신 확인","층별, 구역별 주차 현황에 따른 만공차 내용 표출 정확도 확인","중앙감시반 또는 관제 서버와의 데이터 연동 여부 확인"].concat(SEC,[PW,PG]),pv:1},
+{n:"주차유도 시스템",
+ m:{a:[A1,A2,A3,A4],f:["주차유도 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인","주차 공간 유무에 따른 발광소자(LED 등) 동작 확인","주차 유도 안내판 및 유도등 정상 동작 여부 확인","실시간 동영상 촬영 및 저장 상태 확인(해당 기능 지원 시)",F2],s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,"차량 위치 정보의 저장 및 기록 상태 확인","주차 공간 유무에 따른 발광소자(LED 등) 동작 확인"].concat(SEC,[PW,PG]),pv:1},
+{n:"무인택배 시스템",
+ m:{a:[A1,A2,A3,A4],f:["무인택배 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인","택배함 인출 및 잠금 기능 정상 동작 확인","디스플레이 정보, 선명도, 밝기 등 이용 환경 확인","물리적 또는 논리적 버튼 정상 동작 여부 확인(키패드 등)","물리적 또는 논리적 버튼 동작 시 디스플레이 정보와의 상호 연계성 확인"],s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,"시스템 사용자 권한 확인","중앙 시스템과의 실시간 통신 연결 상태 확인","물리적 또는 논리적 버튼 동작 시 디스플레이 정보와의 상호 연계성 확인","물리적 또는 논리적 버튼 정상 동작 여부 확인(키패드 등)"].concat(SEC,[PW,PG]),pv:1},
+{n:"비상벨 설비",
+ m:{a:[A1,A3,A4],f:["동작 상태별 발광소자(LED 등) 점등 상태 확인","비상벨 작동 시 통화 연결 및 품질 확인","비상벨 작동 시 연계된 부가 기능(알람 구역 안내, CCTV 영상 등) 정상 동작 여부 확인","자동화재설비 연동 유무 및 작동 여부 확인","구내방송설비 연동 상태 및 작동 여부 확인"],s:[S1,S2,S3,S5,S6,S7]},
+ p:[P0,"작동 시 관제소(경비실, 관리사무소 등)와의 통화 연결 및 품질 상태 확인","무선 신호 수신 감도 측정",S4,PW,PG],pv:1},
+{n:"영상정보처리기기 시스템",
+ m:{a:[A1,"기기와 연결된 케이블 및 커넥터 상태 확인",A5,A3,"방진/방수 등 상태 확인",A4],f:["비상벨 작동 시 연계된 기능(알람 구역 안내, CCTV 영상 등) 정상 동작 여부 확인",V1,V2,H1,"시스템 지원 기능(적외선 모드, 컬러 모드, 모션 인식 등) 동작 상태 확인","마이크, 스피커 등 작동 상태 확인(해당 시)","기능(분할 화면, 무선기기 연결 등) 동작 상태 확인",F2,"리프트 동작상태 확인"],s:[S1,S2,S3,S5,S6,S7]},
+ p:[P0,"비상벨 작동 시 연계된 기능(알람 구역 안내, CCTV 영상 등) 정상 동작 여부 확인",V1,V2,H1,"기능(적외선 모드, 컬러 모드, 모션인식 등) 동작 상태 확인","마이크, 스피커 등 작동 상태 확인(해당 시)","기능(분할 화면, 무선기기 연결 등) 동작 상태 확인",F2].concat(SEC,[PW,PG]),pv:1},
+{n:"홈네트워크 설비",
+ m:{a:["[공용] "+A1,"[공용] "+A2,"[공용] "+A3,"[공용] "+A4,"[공용] FDF 내 광케이블 꼬임, 꺾임 등 장애요인 확인","[전유] "+A1,"[전유] "+A2,"[전유] "+A3,"[전유] "+A4],
+     f:["[공용] 랙(함체) 전면 및 후면 도어 시건장치 정상 동작 확인(시건장치가 있는 경우)","[공용] 랙(함체) 내부 환기 계통 점검(FAN 등)","[공용] 네트워크 연동상태 확인","[공용] 경비실기, 로비폰 음향상태 확인","[전유] 홈네트워크 단말기기 원격제어 정상 작동 여부 확인"],
+     s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,"[공용] "+PV,"[공용] "+PA,"[공용] "+PB,"[공용] "+PC,"[공용] "+PD,"[공용] "+PE,"[공용] "+PW,"[공용] "+PG,"[공용] 연결 시스템 데이터 연동 정확도 확인","[전유] 홈네트워크 단말기기 원격제어 정상 작동 여부 확인","[전유] 월패드 사용자 인증(비밀번호) 설정 여부 확인","[전유] 최신 펌웨어 적용 여부 확인"],pv:1},
+{n:"빌딩 안내 시스템(BIS)",
+ m:{a:[A1,"기기와 연결된 케이블 및 커넥터 상태 확인",A5,A3,A4],f:["서버 고유 기능 정상 동작 및 모니터링 상태 확인","BIS 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인","표출 정보에 대한 영상 및 음향 상태 확인","글자(한글, 영문), 숫자 등 정보 가독성 확인","제어기기와의 데이터 연동 및 정확도 확인",F1,F2,F3,F4,F5,F6],s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,PV,"제어기기와의 데이터 연동 및 정확도 확인",S4].concat(SEC,[PW,PG]),pv:1},
+{n:"전기시계 시스템",
+ m:{a:[A1,A2,A5,A3,A4],f:[F0,"위성 신호 포착 및 동기, 시각 데이터 검출 및 변환 기능 상태 확인","표준시간 수신 상태 확인",F1,F2,F3,F4,F5,F6],s:[S1,S2,S3,S4,S5]},
+ p:[P0,"표준시간 수신 상태 확인",S4].concat(SEC,[PW,PG]),pv:0},
+{n:"통합 SI 시스템",
+ m:{a:[A1,"기기와 연결된 케이블 및 커넥터 상태 확인",A5,A3,A4],f:SYSF,s:[S1,S2,S3,S4,S5]},
+ p:[P0,PV].concat(SEC,[PW,PG]),pv:0},
+{n:"시설관리 시스템",
+ m:{a:[A1,"기기와 연결된 케이블 및 커넥터 상태 확인",A5,A3,A4],f:SYSF,s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,PV].concat(SEC,[PW,PG]),pv:0},
+{n:"건물 에너지관리 시스템(BEMS)",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A5,A3,A4],f:SYSF,s:[S1,S2,S3,S4,S5,S6,S7]},
+ p:[P0,PV].concat(SEC,[PW,PG]),pv:0},
+{n:"지능형 인원계수 시스템",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["CCTV 움직임 감지 및 동작 상태 확인","센서와의 데이터 연동 여부 확인",V1,V2,H1,"냉각팬 동작 상태 확인"],s:[S1,"장비 전원공급 단자 연결 상태 확인",S3,S5,S7]},
+ p:[P0,"센서와의 데이터 연동 여부 확인",V1,V2].concat(SEC,[PW,PG]),pv:0},
+{n:"지능형 경계 감시 시스템",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["경계감시 관련 기능의 정상 동작(모니터링, 제어 등) 여부 확인","구역별 센서 동작 및 감지 이벤트 발생 확인",V1,V2,H1,"냉각팬 동작 상태 확인","함체부 확인"],s:[S1,"장비 전원공급 단자 연결 상태 확인",S3,S5,S7]},
+ p:[P0,"구역별 센서 동작 및 감지 이벤트 발생 확인",V1,V2].concat(SEC,[PW,PG]),pv:0},
+{n:"스마트 병원 설비(의료용 너스콜)",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["호출기 버튼 정상 눌림 및 복원 여부 확인","통화 연결 및 품질 상태 확인","주수신기와 호출 병실 간 데이터 연동 여부 확인","호출 시 복도등 연동 여부 확인",H1,"호출횟수, 처리시간 등 관리프로그램 기록정보 연동 확인"],s:[S2,S5,S7]},
+ p:[P0,"통화 연결 및 품질 상태 확인","주수신기와 호출 병실 간 데이터 연동 여부 확인"].concat(SEC,[PW,PG]),pv:0},
+{n:"스마트 도난방지 시스템",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["도난 감지 장치의 태그 인식 여부 확인","경보기 작동 여부 확인(태그 인식 시)"],s:[S1,S2,S5,S7]},
+ p:[P0,"도난 감지 장치의 태그 인식 여부 확인","경보기 작동 여부 확인(태그 인식 시)",PW,PG],pv:0},
+{n:"스마트 공장 시스템",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["모니터링 디스플레이 장치 정상 동작 여부 확인","환경정보 값 실시간 송·수신 여부 확인","구성 설비 데이터 수집 및 제어 여부 확인","입·출력 모듈을 통한 물리적 설비 제어 여부 확인","센서 동작 여부 확인",H1],s:[S1,S2,S3,S5,S7]},
+ p:[P0,"구성 설비 데이터 수집 및 제어 여부 확인","센서 동작 여부 확인"].concat(SEC,[PW,PG]),pv:0},
+{n:"스마트 도서관 시스템",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["도서 출납 기능 확인","보관 도서에 대한 검색 기능 여부 확인","UV 살균 시스템 작동 여부 확인","디스플레이 정상 동작 여부 확인","바코드리더기 인식 작동 여부 확인","프린터 기능 작동 여부 확인(대출/반납 확인증)","물리적 및 논리적 버튼 정상 동작 여부 확인","네트워크 연결 상태 확인",H1,"도서투입구 자동도어 안전센서 동작여부 확인"],s:[S1,S2,S3,S5,"잠금 장치 상태 확인",S7]},
+ p:[P0,"도서 출납 기능 확인","바코드리더기 인식 작동 여부 확인"].concat(SEC,[PW,PG]),pv:0},
+{n:"지능형 이상음원 시스템",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["비상벨 버튼 정상 동작 여부 확인","영상 및 음향 상태 확인","경보 정상 작동 확인",V1,V2,H1,"냉각팬 동작 상태 확인","음원 감지 녹음 기능 작동여부 확인","이벤트 발생시 스피커 알람 경고방송 정상송출 확인"],s:[S1,S2,S3,S5,S7]},
+ p:[P0,"음원 감지 녹음 기능 작동여부 확인","이벤트 발생시 스피커 알람 경고방송 정상송출 확인"].concat(SEC,[PW,PG]),pv:0},
+{n:"IoT기반 지하공간 안전관리 시스템",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:[F0,"센서와의 데이터 연동 여부 확인",H1,"냉각팬 동작 상태 확인"],s:[S1,S2,S3,S5,S7,"가스 발생 유무 및 산소도 측정"]},
+ p:[P0,"센서와의 데이터 연동 여부 확인","가스 발생 유무 및 산소도 측정"].concat(SEC,[PW,PG]),pv:0},
+{n:"디지털 사이니지",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,A4],f:["서버로부터 받은 실시간 정보의 정상 표출 여부 확인","글자(한글, 영문), 숫자 등 정보 가독성 확인",H1,"유·무선 네트워크 연결상태 확인","미디어 원격제어 정상동작 확인"],s:[S1,S2,S3,S5,S7]},
+ p:[P0,"서버로부터 받은 실시간 정보의 정상 표출 여부 확인","미디어 원격제어 정상동작 확인"].concat(SEC,[PW,PG]),pv:0},
+{n:"통신용 전원 설비",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A3,"배터리 보호함 및 단자 커버 유무 및 상태 확인","배터리 누액 발생 여부 확인",A4],f:["배터리 충전량 확인","냉각팬 동작 상태 확인","고장 또는 오작동 경고 알람 여부 확인"],s:[S1,S2,S3,S4,S5,"항온·항습장치 동작상태 확인",S7]},
+ p:[P0,"배터리 충전량 확인","고장 또는 오작동 경고 알람 여부 확인",S4,PW,PG],pv:0},
+{n:"통신 접지 설비",
+ m:{a:[A1,"기기와 연결 케이블 및 커넥터 상태 확인",A4],f:[],s:[S1,S2,S3,S5,S7]},
+ p:[P0,A1,PG],pv:0}
+];
+
+/* ────────── 상태 ────────── */
+var S={kind:"maint",sel:[],cur:0,res:{},loc:{},sec:{},only:false};
+var LS="ictInspect.v2";
+
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+
+/* 설비의 현재 점검종류 항목 목록 → [{g:'외관', t:'...'}] */
+function itemsOf(i){
+  var e=EQ[i],out=[];
+  if(S.kind==="maint"){
+    e.m.a.forEach(function(t){out.push({g:"외관",t:t})});
+    e.m.f.forEach(function(t){out.push({g:"기능",t:t})});
+    e.m.s.forEach(function(t){out.push({g:"안전",t:t})});
+  }else{
+    e.p.forEach(function(t){out.push({g:"점검항목",t:t})});
+  }
+  return out;
+}
+function key(i,j){return i+"_"+j}
+function val(i,j){var r=S.res[key(i,j)];return r?r.v:"O"}
+function note(i,j){var r=S.res[key(i,j)];return r&&r.note?r.note:""}
+
+/* ────────── 화면 전환 ────────── */
+function go(n){
+  [0,1,2,3].forEach(function(k){
+    $("s"+k).classList.toggle("on",k===n);
+    $("t"+k).classList.toggle("on",k===n);
+  });
+  if(n===1){renderTabs();renderItems()}
+  if(n===2)renderResult();
+  if(n===3)renderHist();
+  updateBar(n);
+  window.scrollTo(0,0);
+}
+function curStep(){for(var k=0;k<4;k++)if($("s"+k).classList.contains("on"))return k;return 0}
+
+function setKind(k){
+  S.kind=k;
+  document.querySelectorAll(".kind").forEach(function(b){b.classList.toggle("on",b.dataset.k===k)});
+  $("l_second").textContent = k==="maint" ? "설치업체" : "관리주체(입회자)";
+  $("l_eqsecond").textContent = k==="maint" ? "설치업체 (이 설비)" : "관리주체 입회자 (이 설비)";
+  S.res={};
+  renderEq();updateBar(curStep());
+}
+
+/* ────────── 설비 선택 ────────── */
+function renderEq(){
+  var q=($("eqfind").value||"").trim();
+  var h="";
+  EQ.forEach(function(e,i){
+    if(q && e.n.indexOf(q)<0) return;
+    var on=S.sel.indexOf(i)>=0;
+    h+='<div class="eq'+(on?" on":"")+'" onclick="tog('+i+')"><i></i><span>'+esc(e.n)+'</span></div>';
+  });
+  $("eqlist").innerHTML=h||'<div class="empty">검색 결과가 없습니다.</div>';
+  $("eqcount").textContent=S.sel.length+" / "+EQ.length+" 선택";
+}
+function tog(i){
+  var k=S.sel.indexOf(i);
+  if(k>=0)S.sel.splice(k,1); else S.sel.push(i);
+  S.sel.sort(function(a,b){return a-b});
+  renderEq();updateBar(curStep());
+}
+function pick(m){
+  S.sel = m==="all" ? EQ.map(function(_,i){return i}) : [];
+  renderEq();updateBar(curStep());
+}
+
+/* ────────── 점검 화면 ────────── */
+function renderTabs(){
+  var h="";
+  S.sel.forEach(function(i,n){
+    var bad=itemsOf(i).some(function(_,j){return val(i,j)==="X"});
+    h+='<button class="tab'+(n===S.cur?" on":"")+(bad?" has":"")+'" onclick="setTab('+n+')">'+
+       esc(EQ[i].n)+'<span class="dot"></span></button>';
+  });
+  $("tabs").innerHTML=h;
+}
+function setTab(n){S.cur=n;renderTabs();renderItems();window.scrollTo(0,0)}
+
+function renderItems(){
+  if(!S.sel.length){$("items").innerHTML='<div class="empty">점검할 설비를 먼저 선택하세요.</div>';return}
+  var i=S.sel[S.cur],list=itemsOf(i),h="",g="";
+  $("f_eqloc").value = S.loc[i]!==undefined ? S.loc[i] : ($("f_loc").value||"");
+  $("f_eqsecond").value = S.sec[i]!==undefined ? S.sec[i] : ($("f_second").value||"");
+  list.forEach(function(it,j){
+    var v=val(i,j);
+    if(S.only && v!=="X") return;
+    if(it.g!==g){g=it.g;h+='<div class="group-h">'+esc(g)+'</div>'}
+    var cls = v==="X"?"x":(v==="-"?"n":"o");
+    h+='<div class="item '+cls+'" id="it'+j+'">'+
+       '<p>'+esc(it.t)+'</p>'+
+       '<div class="sw">'+
+         btn(i,j,"O","적합","○",v)+btn(i,j,"X","부적합","✕",v)+btn(i,j,"-","해당없음","—",v)+
+       '</div>'+
+       '<div class="note"><label>'+(S.kind==="maint"?"부적합 사유 (비고란 기재)":"부적합 사항 및 조치사항")+'</label>'+
+       '<textarea placeholder="'+(S.kind==="maint"?"예) 단자함 하단 부식 진행, 재도장 필요":"예) 부적합사항 - 접지저항 12Ω 초과 / 조치사항 - 접지봉 증설 후 재측정")+'" oninput="setNote('+i+','+j+',this.value)">'+esc(note(i,j))+'</textarea></div>'+
+       '</div>';
+  });
+  $("items").innerHTML = h || '<div class="empty">부적합 항목이 없습니다.</div>';
+}
+function btn(i,j,v,label,sym,cur){
+  return '<button data-v="'+v+'" class="'+(cur===v?"on":"")+'" onclick="setVal('+i+','+j+',\''+v+'\')">'+
+         '<span class="txt">'+label+'</span><span class="sym">'+sym+'</span></button>';
+}
+function setVal(i,j,v){
+  var r=S.res[key(i,j)]||{v:"O",note:""};
+  r.v=v; S.res[key(i,j)]=r;
+  renderItems();renderTabs();updateBar(1);
+}
+function setNote(i,j,t){
+  var r=S.res[key(i,j)]||{v:"X",note:""};
+  r.note=t; S.res[key(i,j)]=r;
+}
+function setEqLoc(v){S.loc[S.sel[S.cur]]=v}
+function setEqSecond(v){S.sec[S.sel[S.cur]]=v}
+function toggleOnly(){
+  S.only=!S.only;
+  $("onlyX").textContent = S.only ? "전체 보기" : "부적합만 보기";
+  $("onlyX").style.background = S.only ? "#12171B" : "#fff";
+  $("onlyX").style.color = S.only ? "#fff" : "#2A343C";
+  renderItems();
+}
+function resetTab(){
+  var i=S.sel[S.cur];
+  itemsOf(i).forEach(function(_,j){delete S.res[key(i,j)]});
+  renderItems();renderTabs();updateBar(1);
+}
+
+/* ────────── 하단바 ────────── */
+function counts(){
+  var o=0,x=0,n=0,tot=0;
+  S.sel.forEach(function(i){
+    itemsOf(i).forEach(function(_,j){
+      tot++;var v=val(i,j);
+      if(v==="X")x++;else if(v==="-")n++;else o++;
+    });
+  });
+  return {o:o,x:x,n:n,tot:tot};
+}
+function updateBar(step){
+  var c=counts();
+  $("b_tot").textContent=c.tot;
+  $("b_bad").textContent=c.x;
+  var touched=0;
+  S.sel.forEach(function(i){itemsOf(i).forEach(function(_,j){if(S.res[key(i,j)])touched++})});
+  $("b_prog").textContent = step>=1 ? c.tot : touched;
+  $("b_fill").style.width = c.tot ? (step>=1?100:(touched/c.tot*100))+"%" : "0%";
+  var b=$("b_next");
+  if(step===0){b.textContent="점검 시작";b.disabled=S.sel.length===0;b.classList.remove("ghost")}
+  else if(step===1){b.textContent="결과 보기";b.disabled=false;b.classList.remove("ghost")}
+  else {b.textContent="점검 화면";b.disabled=false;b.classList.add("ghost")}
+}
+function next(){
+  var s=curStep();
+  if(s===0){
+    if(!S.sel.length)return;
+    $("t1").disabled=false;$("t2").disabled=false;S.cur=0;go(1);
+  }else if(s===1){ go(2) }
+  else { go(1) }
+}
+
+/* ────────── 결과 ────────── */
+function renderResult(){
+  var c=counts();
+  $("n_ok").textContent=c.o;$("n_bad").textContent=c.x;$("n_na").textContent=c.n;
+  var h="";
+  S.sel.forEach(function(i){
+    itemsOf(i).forEach(function(it,j){
+      if(val(i,j)!=="X")return;
+      var nt=note(i,j);
+      h+='<div class="fail"><div class="e">'+esc(EQ[i].n)+' · '+esc(it.g)+'</div>'+
+         '<div class="t">'+esc(it.t)+'</div>'+
+         '<div class="n">'+(nt?esc(nt):'⚠ 사유 미기재 — 서식 제출 전 반드시 작성하세요')+'</div></div>';
+    });
+  });
+  $("fails").innerHTML = h || '<div class="empty">부적합 항목이 없습니다.</div>';
+}
+
+/* ────────── 인쇄용 서식 ────────── */
+function meta(){
+  return {bld:$("f_bld").value,addr:$("f_addr").value,area:$("f_area").value,
+          date:$("f_date").value||today(),insp:$("f_insp").value,second:$("f_second").value,loc:$("f_loc").value};
+}
+function buildSheet(){
+  var M=meta(),h="";
+  S.sel.forEach(function(i){
+    var e=EQ[i],list=itemsOf(i);
+    var loc = S.loc[i]!==undefined && S.loc[i]!=="" ? S.loc[i] : M.loc;
+    var sec = S.sec[i]!==undefined && S.sec[i]!=="" ? S.sec[i] : M.second;
+    h+='<div class="pg">';
+    if(S.kind==="maint"){
+      h+='<h3>'+esc(e.n)+' 유지보수·관리 점검표</h3>';
+      h+='<table class="meta"><tr><th style="width:60pt">점검자</th><td>'+esc(M.insp)+
+         '</td><th style="width:60pt">설치위치</th><td>'+esc(loc)+
+         '</td><th style="width:60pt">설치업체</th><td>'+esc(sec)+'</td></tr>'+
+         '<tr><th>건축물</th><td>'+esc(M.bld)+'</td><th>소재지</th><td colspan="3">'+esc(M.addr)+'</td></tr>'+
+         '<tr><th>점검일자</th><td>'+esc(M.date)+'</td><th>연면적</th><td colspan="3">'+esc(M.area)+' ㎡</td></tr></table>';
+      h+='<table><tr><th style="width:36pt">점검항목</th><th>점검내용</th><th class="c">점검결과</th><th style="width:150pt">비고</th></tr>';
+      ["외관","기능","안전"].forEach(function(g){
+        var rows=list.map(function(it,j){return {it:it,j:j}}).filter(function(r){return r.it.g===g});
+        if(!rows.length)return;
+        rows.forEach(function(r,k){
+          h+='<tr>';
+          if(k===0)h+='<td class="g" rowspan="'+rows.length+'">'+g+'</td>';
+          h+='<td>'+esc(r.it.t)+'</td><td class="c">'+mark(val(i,r.j))+'</td><td>'+esc(note(i,r.j))+'</td></tr>';
+        });
+      });
+      h+='</table>';
+      h+='<div class="note-b"><b>작 성 방 법</b><br>1. 점검결과에는 [적합 ㅇ, 부적합 X, 해당없음 - ]을 표기하고, 비고에는 부적합 사유를 기록한다.<br>2. 유지보수·관리 대상 정보통신설비의 특성 및 여건에 맞게 점검내용을 추가ㆍ변경 할 수 있다.</div>';
+    }else{
+      h+='<h3>'+esc(e.n)+' 성능점검표</h3>';
+      h+='<table class="meta"><tr><th style="width:66pt">점검자(소속)</th><td>'+esc(M.insp)+
+         '</td><th style="width:76pt">관리주체(입회자)</th><td>'+esc(sec)+
+         '</td><th style="width:50pt">설치위치</th><td>'+esc(loc)+'</td></tr>'+
+         '<tr><th>건축물</th><td>'+esc(M.bld)+'</td><th>점검일자</th><td>'+esc(M.date)+'</td><th>연면적</th><td>'+esc(M.area)+' ㎡</td></tr></table>';
+      h+='<table><tr><th style="width:36pt">구 분</th><th>점검내용</th><th class="c">점검결과</th><th style="width:110pt">비고</th></tr>';
+      list.forEach(function(it,j){
+        h+='<tr>';
+        if(j===0)h+='<td class="g" rowspan="'+list.length+'">점검항목</td>';
+        h+='<td>'+esc(it.t)+'</td><td class="c">'+mark(val(i,j))+'</td><td></td></tr>';
+      });
+      var fails=list.map(function(it,j){return {it:it,j:j}}).filter(function(r){return val(i,r.j)==="X"});
+      var ftxt = fails.length ? fails.map(function(r){return "○ "+r.it.t+"\n   - "+(note(i,r.j)||"")}).join("\n") : "○ 해당 없음";
+      h+='<tr><td class="g">부적합<br>항목</td><td colspan="3" style="height:110pt;white-space:pre-wrap;vertical-align:top">'+
+         '&lt;부적합사항 및 조치사항&gt;\n'+esc(ftxt)+'</td></tr>';
+      h+='<tr><td class="g">현황<br>사진</td><td colspan="3" style="height:150pt"></td></tr>';
+      h+='<tr><td class="g">비 고</td><td colspan="3" style="height:44pt"></td></tr>';
+      h+='</table>';
+      h+='<div class="note-b"><b>작 성 방 법</b><br>1. 제6조 각 호에 따른 자료와 유지보수·관리 및 성능점검 대상 현황표와의 적합여부를 참고하여 점검결과를 작성한다.<br>2. 점검결과에는 [적합 ㅇ, 부적합 X, 해당없음 - ]을 표기하고, 부적합 항목에 부적합 사항과 조치사항을 기록한다.<br>3. 성능점검 대상 정보통신설비의 특성 및 여건에 맞게 점검내용을 추가ㆍ변경할 수 있다.</div>';
+    }
+    h+='</div>';
+  });
+  $("sheet").innerHTML=h;
+}
+function mark(v){return v==="X"?"X":(v==="-"?"-":"ㅇ")}
+function doPrint(){buildSheet();window.print()}
+
+/* ────────── 저장 / 내보내기 ────────── */
+function snapshot(){
+  return {ts:Date.now(),kind:S.kind,meta:meta(),sel:S.sel,res:S.res,loc:S.loc,sec:S.sec,
+          eq:S.sel.map(function(i){return EQ[i].n}),counts:counts()};
+}
+function saveRec(){
+  try{
+    var all=JSON.parse(localStorage.getItem(LS)||"[]");
+    all.unshift(snapshot());
+    localStorage.setItem(LS,JSON.stringify(all.slice(0,80)));
+    alert("이력에 저장했습니다.");
+  }catch(e){alert("저장할 수 없습니다: "+e.message)}
+}
+function expJSON(){
+  var b=new Blob([JSON.stringify(snapshot(),null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(b);
+  a.download="점검기록_"+(meta().bld||"건축물")+"_"+meta().date+".json";
+  a.click();
+}
+function expText(){
+  var M=meta(),c=counts(),t="";
+  t+="["+(S.kind==="maint"?"유지보수·관리 점검":"성능점검")+"] "+(M.bld||"")+"\n";
+  t+=M.date+" / 점검자 "+(M.insp||"")+"\n";
+  t+="대상설비 "+S.sel.length+"종 · 항목 "+c.tot+"건\n";
+  t+="적합 "+c.o+" / 부적합 "+c.x+" / 해당없음 "+c.n+"\n";
+  if(c.x){
+    t+="\n■ 부적합\n";
+    S.sel.forEach(function(i){
+      itemsOf(i).forEach(function(it,j){
+        if(val(i,j)!=="X")return;
+        t+="❌ ["+EQ[i].n+"] "+it.t+"\n   → "+(note(i,j)||"사유 미기재")+"\n";
+      });
+    });
+  }
+  navigator.clipboard.writeText(t).then(function(){alert("요약을 복사했습니다.")},
+    function(){prompt("아래 내용을 복사하세요",t)});
+}
+function renderHist(){
+  var all=[];
+  try{all=JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){}
+  if(!all.length){$("histlist").innerHTML='<div class="empty">저장된 점검 이력이 없습니다.</div>';return}
+  var h="";
+  all.forEach(function(r,n){
+    var d=new Date(r.ts);
+    h+='<div class="hist"><div><div class="m">'+esc(r.meta.bld||"(건축물 미입력)")+'</div>'+
+       '<div class="d">'+(r.kind==="maint"?"유지보수·관리":"성능점검")+' · '+r.meta.date+
+       ' · 설비 '+r.sel.length+'종 · 부적합 '+r.counts.x+'건 · 저장 '+d.toLocaleDateString("ko-KR")+'</div></div>'+
+       '<button class="btn-s" onclick="loadRec('+n+')" style="padding:9px 12px">불러오기</button></div>';
+  });
+  $("histlist").innerHTML=h;
+}
+function loadRec(n){
+  var all=JSON.parse(localStorage.getItem(LS)||"[]"),r=all[n];
+  if(!r)return;
+  setKind(r.kind);
+  $("f_bld").value=r.meta.bld||"";$("f_addr").value=r.meta.addr||"";$("f_area").value=r.meta.area||"";
+  $("f_date").value=r.meta.date||"";$("f_insp").value=r.meta.insp||"";$("f_second").value=r.meta.second||"";
+  $("f_loc").value=r.meta.loc||"";
+  S.sel=r.sel||[];S.res=r.res||{};S.loc=r.loc||{};S.sec=r.sec||{};S.cur=0;
+  $("t1").disabled=false;$("t2").disabled=false;
+  renderEq();go(1);
+}
+
+/* ────────── 초기화 ────────── */
+/* 헤더 높이는 화면 폭에 따라 달라지므로, 설비 탭이 헤더에 가리지 않도록 실측해서 반영 */
+function syncHeader(){
+  var h=document.querySelector("header");
+  if(h)document.documentElement.style.setProperty("--hdr",h.offsetHeight+"px");
+}
+syncHeader();
+window.addEventListener("resize",syncHeader);
+window.addEventListener("orientationchange",function(){setTimeout(syncHeader,250)});
+
+$("f_date").value=today();
+renderEq();updateBar(0);
+</script>
+</body>
+</html>

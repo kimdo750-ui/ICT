@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>원강 현장 길안내</title>
+<title>원강정보통신 일일작업현황</title>
 <style>
   :root{--navy:#14213d;--red:#c8102e;--ink:#1a1a1a;--line:#e3e5ea;--bg:#eef0f3;
     --kakao:#FEE500;--kakaoInk:#3a1d1d;--tmap:#2c6ef2;--road:#127a3a;
@@ -78,7 +78,7 @@
   <header>
     <div class="logo">
       <div class="lg-mark">원강</div>
-      <div class="lg-txt"><b>원강정보통신</b><span>1팀 현장 길안내</span></div>
+      <div class="lg-txt"><b>원강정보통신</b><span>일일작업현황</span></div>
     </div>
     <div class="d" id="today"></div>
   </header>
@@ -94,7 +94,7 @@
 
   <div class="report">
     <h2>📋 팀장님 카톡 보고</h2>
-    <p>각 건에 상태를 누른 뒤 아래 버튼을 누르면 보고글이 복사돼요.</p>
+    <p>상태(작업중/완료/이동중) 선택한 건만 복사돼요.</p>
     <button class="copybtn" onclick="copyReport()">보고글 복사하기</button>
     <pre id="out"></pre>
   </div>
@@ -106,7 +106,6 @@
 <script>
   const KAKAO_KEY = '697c25888cacee170fe5b79ff53d216a';
 
-  // work: 전주 / 맨홀 / 구내  · warn:true → ⚠️현장확인
   const jobs = [
     {no:1, code:'0433', jibun:'경기 양주시 장흥면 석현리 189-2', report:'석현리 189-2',              work:'전주', warn:false, detail:'2층 베란다 배전반 2포트 · 함체 P.석현리22-1(전주)', mat:'4C · 대략 40m'},
     {no:2, code:'0437', jibun:'경기 양주시 홍죽리 843',          report:'홍죽리 843 앞 한전주',       work:'전주', warn:false, detail:'한전주 키높이 고장수리→광케이블 교체+3포트 변경 · FV034112', mat:'광케이블 교체 · 전주구간'},
@@ -172,8 +171,10 @@
     }).join('');
   }
   function copyReport(){
-    const lines=jobs.map(j=>{const s=state[j.no];const rd=j.road?` (${j.road})`:'';
-      return `${j.no}. ${j.code} [${WLBL[j.work]}]\n${j.report}${rd}${s?(' '+STAT[s]+'.'):''}`;}).join('\n');
+    const sel=jobs.filter(j=>state[j.no]);
+    if(sel.length===0){toast('상태를 먼저 선택하세요');return;}
+    const lines=sel.map(j=>{const rd=j.road?` (${j.road})`:'';
+      return `${j.no}. ${j.code} [${WLBL[j.work]}]\n${j.report}${rd} ${STAT[state[j.no]]}.`;}).join('\n');
     document.getElementById('out').textContent=lines;
     copyText(lines);
   }

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>원강 현장 길안내 (자동 도로명)</title>
+<style>
+  :root{--navy:#14213d;--red:#c8102e;--ink:#1a1a1a;--line:#e3e5ea;--bg:#eef0f3;
+    --kakao:#FEE500;--kakaoInk:#3a1d1d;--tmap:#2c6ef2;--go:#f59e0b;--done:#16a34a;--move:#2563eb;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--bg);color:var(--ink);padding:14px 12px 44px;}
+  header{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 12px;}
+  header .t{font-size:20px;font-weight:800;color:var(--navy);}
+  header .d{font-size:15px;color:#667;font-weight:700;}
+  .setup{background:#fdecea;border:1px solid #f5b7b1;color:#922;font-size:13px;line-height:1.6;
+    padding:12px;border-radius:12px;margin-bottom:14px;display:none;}
+  .setup b{color:var(--red);}
+  .hint{background:#fff7e6;border:1px solid #f2d98a;color:#8a5a00;font-size:14px;line-height:1.55;
+    padding:10px 12px;border-radius:12px;margin-bottom:14px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;margin-bottom:14px;padding:14px;
+    box-shadow:0 2px 6px rgba(20,33,61,.06);}
+  .top{display:flex;align-items:flex-start;gap:12px;}
+  .num{flex:0 0 44px;height:44px;border-radius:50%;background:var(--red);color:#fff;font-size:21px;
+    font-weight:800;display:flex;align-items:center;justify-content:center;}
+  .info{flex:1;min-width:0;}
+  .addr{font-size:23px;font-weight:800;color:var(--navy);line-height:1.2;}
+  .road{font-size:15px;font-weight:700;color:#2a6b2a;margin-top:4px;line-height:1.35;}
+  .road .lbl{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:#2a9d5a;
+    border-radius:5px;padding:1px 6px;margin-right:5px;vertical-align:1px;}
+  .road.load{color:#999;}
+  .detail{font-size:14px;color:#556;margin-top:6px;line-height:1.45;}
+  .meta{display:inline-block;font-size:12px;font-weight:800;color:#8a6d1f;background:#faf3dd;
+    border-radius:6px;padding:2px 8px;margin-top:7px;}
+  .navrow{display:flex;gap:8px;margin-top:12px;}
+  .nav{flex:1;border:0;border-radius:13px;padding:15px 0;font-size:17px;font-weight:800;cursor:pointer;}
+  .nav:active{transform:scale(.98);}
+  .nav.k{background:var(--kakao);color:var(--kakaoInk);}
+  .nav.t{background:var(--tmap);color:#fff;}
+  .status{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e6e8ec;}
+  .chip{flex:1;border:1.5px solid var(--line);background:#fafbfc;border-radius:10px;padding:9px 0;
+    font-size:14px;font-weight:700;color:#667;cursor:pointer;}
+  .chip:active{transform:scale(.98);}
+  .chip.on-go{background:var(--go);border-color:var(--go);color:#fff;}
+  .chip.on-done{background:var(--done);border-color:var(--done);color:#fff;}
+  .chip.on-move{background:var(--move);border-color:var(--move);color:#fff;}
+  .report{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:4px;}
+  .report h2{margin:0 0 6px;font-size:17px;color:var(--navy);}
+  .report p{margin:0;font-size:13px;color:#667;line-height:1.5;}
+  .copybtn{width:100%;border:0;background:var(--navy);color:#fff;font-size:18px;font-weight:800;
+    padding:16px;border-radius:14px;cursor:pointer;margin-top:12px;}
+  .copybtn:active{background:#0e1830;}
+  pre#out{white-space:pre-wrap;font-size:15px;line-height:1.6;background:#f6f7f9;border:1px dashed #cfd3db;
+    border-radius:10px;padding:12px;margin-top:12px;color:#222;min-height:8px;}
+  .note{font-size:13px;color:#7a7f88;line-height:1.6;margin-top:16px;padding:0 4px;}
+  .note b{color:var(--red);}
+</style>
+</head>
+<body>
+  <header>
+    <div class="t">🔴 원강 현장 길안내</div>
+    <div class="d" id="today"></div>
+  </header>
+
+  <div class="setup" id="setup">
+    ⚠️ <b>카카오 키가 아직 안 들어갔어요.</b> 도로명 자동표시가 꺼진 상태(지번 검색으로만 작동).<br>
+    설정법 → ① developers.kakao.com 로그인 → 애플리케이션 추가 → <b>JavaScript 키</b> 복사 →
+    ② 플랫폼 > Web 에 <b>본인 GitHub Pages 주소</b> 등록 → ③ 이 파일 위쪽 <b>KAKAO_KEY</b> 자리에 붙여넣기.
+  </div>
+
+  <div class="hint">
+    👆 <b>카카오맵</b> 또는 <b>티맵</b> 버튼을 누르면 그 위치로 길안내가 열려요. <b>안내시작</b>만 누르면 끝!<br>
+    🟢 초록색이 <b>도로명(신주소)</b>, 위 굵은 글씨가 <b>지번(구주소)</b> 이에요.
+  </div>
+
+  <div id="list"></div>
+
+  <div class="report">
+    <h2>📋 팀장님 카톡 보고</h2>
+    <p>각 건에 상태를 누른 뒤 아래 버튼을 누르면 보고글이 복사돼요.</p>
+    <button class="copybtn" onclick="copyReport()">보고글 복사하기</button>
+    <pre id="out"></pre>
+  </div>
+
+  <div class="note">
+    <b>확인</b> — 도로명·좌표는 카카오 주소DB 자동조회예요. 빈 지번(공터 등)은 도로명이 없을 수 있어요. 2번 홍죽리는 신규인입 아님(한전주 고장수리+3포트 변경).
+  </div>
+
+<script>
+  // ▼▼▼ 여기에 카카오 JavaScript 키를 붙여넣으세요 ▼▼▼
+  const KAKAO_KEY = 'YOUR_KAKAO_JAVASCRIPT_KEY';
+  // ▲▲▲ (developers.kakao.com 에서 발급, 무료) ▲▲▲
+
+  const jobs = [
+    {no:1, code:'0433', jibun:'경기 양주시 석현리 189-2',   report:'석현리 189-2',              detail:'2층 베란다 배전반 2포트 · 함체 P.석현리22-1', mat:'4C'},
+    {no:2, code:'0437', jibun:'경기 양주시 홍죽리 843',     report:'홍죽리 843 앞 한전주',       detail:'한전주 키높이 고장수리→광케이블 교체+3포트 변경 · FV034112', mat:'교체'},
+    {no:3, code:'0436', jibun:'경기 양주시 가업리 133-1',   report:'가업리 133-1 컨테이너',      detail:'컨테이너 벽 2포트 · 4C 신설 · P.가업리11-1 FV04543', mat:'4C'},
+    {no:4, code:'0489', jibun:'경기 의정부시 만송동 193-26', report:'만송동 193-26',            detail:'가로등주 경유 인입 신설 · P.FG03R363', mat:'8C'},
+    {no:5, code:'0494', jibun:'경기 의정부시 만송동 497-4',  report:'만송동 497-4 에어컨실외기옆', detail:'에어컨 실외기 옆 벽 2포트 · 기설 케이블 경유', mat:'4C'},
+    {no:6, code:'0493', jibun:'경기 의정부시 의정부동 33-13', report:'의정부동 33-13 왼쪽문안쪽', detail:'왼쪽문 안쪽 벽 2포트 신설 · FB14R151 · 관로 47/42m', mat:'4C'},
+    {no:7, code:'0495', jibun:'경기 의정부시 신곡동 78-29',  report:'신곡동 78-29 SK단자옆',      detail:'SK단자 옆 벽 2포트 · FB01R091 · SK단자 구분주의', mat:'4C'},
+    {no:8, code:'0496', jibun:'경기 의정부시 신곡동 783-2',  report:'신곡동 783-2',             detail:'벽 2포트 인입 · 다세대 성단구간', mat:'4C'},
+  ];
+  jobs.forEach(j=>{ j.road=null; j.lat=null; j.lng=null; j.short=j.jibun.replace(/^경기 \S+시 /,''); });
+
+  const STAT={go:'작업중',done:'작업완료',move:'이동중'};
+  const state={};
+  const enc=s=>encodeURIComponent(s);
+
+  (function(){const d=new Date(),w=['일','월','화','수','목','금','토'][d.getDay()];
+    document.getElementById('today').textContent=`${d.getMonth()+1}/${d.getDate()} (${w})`;})();
+
+  function navKakao(no){const j=jobs[no-1];
+    if(j.lat) location.href=`https://map.kakao.com/link/to/${enc(j.short)},${j.lat},${j.lng}`;
+    else location.href=`https://map.kakao.com/link/search/${enc(j.short)}`;}
+  function navTmap(no){const j=jobs[no-1];
+    if(j.lat) location.href=`tmap://route?goalname=${enc(j.short)}&goalx=${j.lng}&goaly=${j.lat}`;
+    else location.href=`tmap://search?name=${enc(j.short)}`;}
+  function setStatus(no,key){state[no]=(state[no]===key)?null:key;render();}
+
+  function render(){
+    document.getElementById('list').innerHTML=jobs.map(j=>{
+      const s=state[j.no];
+      const chip=(k,l)=>`<button class="chip ${s===k?('on-'+k):''}" onclick="setStatus(${j.no},'${k}')">${l}</button>`;
+      const mat=j.mat!=='—'?`<span class="meta">케이블 ${j.mat}</span>`:'';
+      const road = j.road===null
+        ? `<div class="road load" id="road${j.no}">도로명 불러오는 중…</div>`
+        : (j.road ? `<div class="road" id="road${j.no}"><span class="lbl">도로명</span>${j.road}</div>`
+                  : `<div class="road" id="road${j.no}" style="color:#aaa"><span class="lbl" style="background:#bbb">도로명</span>없음(공터/미부여)</div>`);
+      return `<div class="card">
+        <div class="top">
+          <div class="num">${j.no}</div>
+          <div class="info">
+            <div class="addr">${j.short}</div>
+            ${road}
+            <div class="detail">${j.detail}</div>
+            ${mat}
+          </div>
+        </div>
+        <div class="navrow">
+          <button class="nav k" onclick="navKakao(${j.no})">🗺️ 카카오맵</button>
+          <button class="nav t" onclick="navTmap(${j.no})">🚗 티맵</button>
+        </div>
+        <div class="status">${chip('go','작업중')}${chip('done','작업완료')}${chip('move','이동중')}</div>
+      </div>`;
+    }).join('');
+  }
+  function copyReport(){
+    const lines=jobs.map(j=>{const s=state[j.no];
+      return `${j.no}. ${j.code}\n${j.report}${s?(' '+STAT[s]+'.'):''}`;}).join('\n');
+    document.getElementById('out').textContent=lines;
+    const done=()=>{const b=document.querySelector('.copybtn');const o=b.textContent;
+      b.textContent='✅ 복사됐어요!';setTimeout(()=>b.textContent=o,1500);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(lines).then(done).catch(done);}
+    else{const t=document.createElement('textarea');t.value=lines;document.body.appendChild(t);t.select();
+      try{document.execCommand('copy');}catch(e){}t.remove();done();}
+  }
+
+  function markManual(){jobs.forEach(j=>{if(j.road===null)j.road='';});render();}
+
+  function initGeo(){
+    if(!window.kakao||!kakao.maps){document.getElementById('setup').style.display='block';markManual();return;}
+    kakao.maps.load(()=>{
+      const geo=new kakao.maps.services.Geocoder();
+      jobs.forEach(j=>{
+        geo.addressSearch(j.jibun,(res,status)=>{
+          if(status===kakao.maps.services.Status.OK&&res&&res[0]){
+            const r=res[0];
+            j.road=r.road_address?r.road_address.address_name:'';
+            j.lat=r.y; j.lng=r.x;
+          }else{ j.road=''; }
+          render();
+        });
+      });
+    });
+  }
+
+  render();
+  if(KAKAO_KEY==='YOUR_KAKAO_JAVASCRIPT_KEY'){document.getElementById('setup').style.display='block';markManual();}
+  else{
+    const sc=document.createElement('script');
+    sc.src='//dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&libraries=services&autoload=false';
+    sc.onload=initGeo; sc.onerror=()=>{document.getElementById('setup').style.display='block';markManual();};
+    document.head.appendChild(sc);
+  }
+</script>
+</body>
+</html>

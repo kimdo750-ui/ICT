@@ -11,14 +11,12 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{margin:0;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
     background:var(--bg);color:var(--ink);padding:14px 12px 44px;}
-  header{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 14px;}
-  .logo{display:flex;align-items:center;gap:10px;}
-  .lg-mark{width:46px;height:46px;border-radius:12px;background:var(--red);color:#fff;
-    font-size:18px;font-weight:900;letter-spacing:-1px;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 2px 6px rgba(200,16,46,.3);}
-  .lg-txt b{display:block;font-size:19px;font-weight:900;color:var(--navy);line-height:1.1;letter-spacing:-.5px;}
-  .lg-txt span{display:block;font-size:12px;font-weight:700;color:#8a8f98;margin-top:2px;}
-  header .d{font-size:15px;color:#667;font-weight:700;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 14px;}
+  .logo{display:flex;align-items:center;gap:11px;min-width:0;}
+  .lg-mark{width:clamp(46px,14vw,64px);height:auto;flex:0 0 auto;}
+  .lg-txt b{display:block;font-size:clamp(17px,5vw,21px);font-weight:900;color:var(--navy);line-height:1.1;letter-spacing:-.5px;}
+  .lg-txt span{display:block;font-size:clamp(11px,3.2vw,13px);font-weight:700;color:#8a8f98;margin-top:2px;}
+  header .d{font-size:15px;color:#667;font-weight:700;flex:0 0 auto;}
   .setup{background:#fdecea;border:1px solid #f5b7b1;color:#922;font-size:13px;line-height:1.6;
     padding:12px;border-radius:12px;margin-bottom:14px;display:none;}
   .hint{background:#fff7e6;border:1px solid #f2d98a;color:#8a5a00;font-size:13.5px;line-height:1.55;
@@ -77,7 +75,7 @@
 <body>
   <header>
     <div class="logo">
-      <div class="lg-mark">원강</div>
+      <img class="lg-mark" src="img/logo.png" alt="W.K" onerror="this.style.display='none'">
       <div class="lg-txt"><b>원강정보통신</b><span>일일작업현황</span></div>
     </div>
     <div class="d" id="today"></div>
@@ -173,8 +171,7 @@
   function copyReport(){
     const sel=jobs.filter(j=>state[j.no]);
     if(sel.length===0){toast('상태를 먼저 선택하세요');return;}
-    const lines=sel.map(j=>{const rd=j.road?` (${j.road})`:'';
-      return `${j.no}. ${j.code} [${WLBL[j.work]}]\n${j.report}${rd} ${STAT[state[j.no]]}.`;}).join('\n');
+    const lines=sel.map(j=>`${j.no}. ${j.report} ${STAT[state[j.no]]}`).join('\n');
     document.getElementById('out').textContent=lines;
     copyText(lines);
   }

@@ -46,10 +46,12 @@
   .meta{display:inline-block;font-size:12px;font-weight:800;color:#8a6d1f;background:#faf3dd;
     border-radius:6px;padding:3px 9px;margin-top:7px;}
   .navrow{display:flex;gap:8px;margin-top:12px;}
-  .nav{flex:1;border:0;border-radius:13px;padding:15px 0;font-size:17px;font-weight:800;cursor:pointer;}
+  .nav{flex:1;border:0;border-radius:13px;padding:15px 2px;font-size:14.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
   .nav:active{transform:scale(.98);}
   .nav.k{background:var(--kakao);color:var(--kakaoInk);}
   .nav.t{background:var(--tmap);color:#fff;}
+  .nav.r{background:var(--road);color:#fff;}
+  .nav.r.off{background:#eef0f3;color:#9aa0a8;}
   .status{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e6e8ec;}
   .chip{flex:1;border:1.5px solid var(--line);background:#fafbfc;border-radius:10px;padding:9px 0;
     font-size:14px;font-weight:700;color:#667;cursor:pointer;}
@@ -85,7 +87,7 @@
 
   <div class="hint">
     🟢 <b>초록색 = 도로명(신주소)</b>, 누르면 복사 · 회색 = <b>지번(도면 대조용)</b><br>
-    🟧전주고소 🟦맨홀 ⬜구내 = <b>작업구분</b>(함체 위치 기준) · <b>카카오맵/티맵</b> 누르면 길안내
+    🟧전주고소 🟦맨홀 ⬜구내 = <b>작업구분</b>(함체 위치 기준) · <b>카카오맵/티맵</b> 길안내 · <b>로드뷰</b> 현장 미리보기
   </div>
 
   <div id="list"></div>
@@ -128,6 +130,9 @@
   function navTmap(no){const j=jobs[no-1];
     if(j.lat) location.href=`tmap://route?goalname=${enc(j.short)}&goalx=${j.lng}&goaly=${j.lat}`;
     else location.href=`tmap://search?name=${enc(j.short)}`;}
+  function navRoad(no){const j=jobs[no-1];
+    if(j.lat) location.href=`https://map.kakao.com/link/roadview/${j.lat},${j.lng}`;
+    else location.href=`https://map.kakao.com/link/map/${enc(j.short)}`;}
   function setStatus(no,key){state[no]=(state[no]===key)?null:key;render();}
 
   function render(){
@@ -153,6 +158,7 @@
         <div class="navrow">
           <button class="nav k" onclick="navKakao(${j.no})">🗺️ 카카오맵</button>
           <button class="nav t" onclick="navTmap(${j.no})">🚗 티맵</button>
+          <button class="nav r${j.lat?'':' off'}" onclick="navRoad(${j.no})">🛰️ 로드뷰</button>
         </div>
         <div class="status">${chip('go','작업중')}${chip('done','작업완료')}${chip('move','이동중')}</div>
       </div>`;

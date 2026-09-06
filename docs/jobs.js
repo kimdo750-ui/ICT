@@ -1,6 +1,6 @@
 // 원강 일일작업 — ★매일 이 파일만 교체★ (GitHub: docs/jobs.js)
 window.JOBS = [
-  {no:1, code:'0441', jibun:'경기 양주시 백석읍 일영리 360-1', report:'일영리 360-1 벽',                    work:'전주', warn:false, detail:'벽 2포트 신설 · 함체 P.우장4우1-PR1 FJ01G312(전주) · 신4C', mat:'4C · 대략 51m'},
+  {no:1, code:'0441', jibun:'경기 양주시 장흥면 일영리 360-1', report:'일영리 360-1 벽',                    work:'전주', warn:false, detail:'벽 2포트 신설 · 함체 P.우장4우1-PR1 FJ01G312(전주) · 신4C', mat:'4C · 대략 51m'},
   {no:2, code:'0435', jibun:'경기 양주시 장흥면 석현리 189-2', report:'석현리 189-2 (09시 고객약속)',        work:'전주', warn:true,  detail:'⚠️09시 약속·구내시도 후 고객결정 · 2층 베란다 2포트 · 함체 P.석현리22-1 FJ02G376(전주) · 신4C 90m', mat:'4C · 대략 90m'},
   {no:3, code:'0438', jibun:'경기 양주시 장흥면 석현리 224', report:'석현리 224 스카이모텔 옥상',            work:'구내', warn:false, detail:'옥상~구내단자함(월창) 3포트 · 함체 FJ01G414 · 구내단자 신4C', mat:'4C · 옥내'},
   {no:4, code:'0439', jibun:'경기 의정부시 의정부동 429-37', report:'의정부동 429-37 가스계량기옆',          work:'전주', warn:false, detail:'가스계량기 옆 벽 2포트 · 함체 P.신세간1후-2 FU54G3A2(전주)', mat:'4C · 거리확인'},

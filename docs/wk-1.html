@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>원강정보통신 일일작업현황</title>
+<style>
+  :root{--navy:#14213d;--red:#c8102e;--ink:#1a1a1a;--line:#e3e5ea;--bg:#eef0f3;
+    --kakao:#FEE500;--kakaoInk:#3a1d1d;--tmap:#2c6ef2;--road:#127a3a;
+    --go:#f59e0b;--done:#16a34a;--move:#2563eb;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--bg);color:var(--ink);padding:14px 12px 44px;}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 14px;}
+  .logo{display:flex;align-items:center;gap:11px;min-width:0;}
+  .lg-mark{width:clamp(46px,14vw,64px);height:auto;flex:0 0 auto;}
+  .lg-txt b{display:block;font-size:clamp(17px,5vw,21px);font-weight:900;color:var(--navy);line-height:1.1;letter-spacing:-.5px;}
+  .lg-txt span{display:block;font-size:clamp(11px,3.2vw,13px);font-weight:700;color:#8a8f98;margin-top:2px;}
+  header .d{font-size:15px;color:#667;font-weight:700;flex:0 0 auto;}
+  .setup{background:#fdecea;border:1px solid #f5b7b1;color:#922;font-size:13px;line-height:1.6;
+    padding:12px;border-radius:12px;margin-bottom:14px;display:none;}
+  .hint{background:#fff7e6;border:1px solid #f2d98a;color:#8a5a00;font-size:13.5px;line-height:1.55;
+    padding:10px 12px;border-radius:12px;margin-bottom:14px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;margin-bottom:14px;padding:14px;
+    box-shadow:0 2px 6px rgba(20,33,61,.06);}
+  .top{display:flex;align-items:flex-start;gap:12px;}
+  .num{flex:0 0 40px;height:40px;border-radius:50%;background:var(--red);color:#fff;font-size:19px;
+    font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .info{flex:1;min-width:0;}
+  .wtag{display:inline-block;font-size:13px;font-weight:900;padding:4px 11px;border-radius:8px;margin-bottom:8px;}
+  .t-jeonju{background:#fff0e6;color:#c2410c;border:1.5px solid #f7c9a8;}
+  .t-manhole{background:#e7effe;color:#1e40af;border:1.5px solid #b6ccf7;}
+  .t-gunae{background:#eef1f4;color:#475569;border:1.5px solid #cfd6de;}
+  .wtag .w{color:var(--red);}
+  .roadbig{font-size:21px;font-weight:800;color:var(--road);line-height:1.25;
+    background:#eafaf0;border:1px solid #bfe8cf;border-radius:11px;padding:9px 11px;
+    display:flex;align-items:center;gap:7px;cursor:pointer;}
+  .roadbig .cp{margin-left:auto;font-size:12px;font-weight:700;color:#4a9e6d;flex:0 0 auto;}
+  .roadbig.load{color:#999;background:#f4f5f7;border-color:#e3e5ea;font-size:15px;font-weight:700;}
+  .roadnone{font-size:15px;font-weight:800;color:var(--red);background:#fdecec;border:1px solid #f6c9c9;
+    border-radius:11px;padding:9px 11px;}
+  .jibun{font-size:16px;font-weight:700;color:#333;margin-top:7px;}
+  .jibun .lbl{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:#8a8f98;
+    border-radius:5px;padding:1px 6px;margin-right:5px;vertical-align:1px;}
+  .detail{font-size:13.5px;color:#556;margin-top:6px;line-height:1.45;}
+  .meta{display:inline-block;font-size:12px;font-weight:800;color:#8a6d1f;background:#faf3dd;
+    border-radius:6px;padding:3px 9px;margin-top:7px;}
+  .navrow{display:flex;gap:8px;margin-top:12px;}
+  .nav{flex:1;border:0;border-radius:13px;padding:15px 2px;font-size:14.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
+  .nav:active{transform:scale(.98);}
+  .nav.k{background:var(--kakao);color:var(--kakaoInk);}
+  .nav.t{background:var(--tmap);color:#fff;}
+  .nav.r{background:var(--road);color:#fff;}
+  .nav.r.off{background:#eef0f3;color:#9aa0a8;}
+  .status{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e6e8ec;}
+  .chip{flex:1;border:1.5px solid var(--line);background:#fafbfc;border-radius:10px;padding:9px 0;
+    font-size:14px;font-weight:700;color:#667;cursor:pointer;}
+  .chip:active{transform:scale(.98);}
+  .chip.on-go{background:var(--go);border-color:var(--go);color:#fff;}
+  .chip.on-done{background:var(--done);border-color:var(--done);color:#fff;}
+  .chip.on-move{background:var(--move);border-color:var(--move);color:#fff;}
+  .report{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:4px;}
+  .report h2{margin:0 0 6px;font-size:17px;color:var(--navy);}
+  .report p{margin:0;font-size:13px;color:#667;line-height:1.5;}
+  .copybtn{width:100%;border:0;background:var(--navy);color:#fff;font-size:18px;font-weight:800;
+    padding:16px;border-radius:14px;cursor:pointer;margin-top:12px;}
+  pre#out{white-space:pre-wrap;font-size:15px;line-height:1.6;background:#f6f7f9;border:1px dashed #cfd3db;
+    border-radius:10px;padding:12px;margin-top:12px;color:#222;min-height:8px;}
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+    background:#14213d;color:#fff;font-size:15px;font-weight:700;padding:12px 20px;border-radius:24px;
+    opacity:0;transition:.25s;pointer-events:none;z-index:9;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .note{font-size:12.5px;color:#7a7f88;line-height:1.6;margin-top:16px;padding:0 4px;}
+  .note b{color:var(--red);}
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img class="lg-mark" src="img/logo.png" alt="W.K" onerror="this.style.display='none'">
+      <div class="lg-txt"><b>원강정보통신</b><span>일일작업현황</span></div>
+    </div>
+    <div class="d" id="today"></div>
+  </header>
+
+  <div class="setup" id="setup">⚠️ 카카오 키/도메인 확인 필요 — 도로명 자동표시가 꺼진 상태입니다.</div>
+
+  <div class="hint">
+    🟢 <b>초록색 = 도로명(신주소)</b>, 누르면 복사 · 회색 = <b>지번(도면 대조용)</b><br>
+    🟧전주고소 🟦맨홀 ⬜구내 = <b>작업구분</b>(함체 위치 기준) · <b>카카오맵/티맵</b> 길안내 · <b>로드뷰</b> 현장 미리보기
+  </div>
+
+  <div id="list"></div>
+
+  <div class="report">
+    <h2>📋 팀장님 카톡 보고</h2>
+    <p>상태(작업중/완료/이동중) 선택한 건만 복사돼요.</p>
+    <button class="copybtn" onclick="copyReport()">보고글 복사하기</button>
+    <pre id="out"></pre>
+  </div>
+
+  <div class="note"><b>확인</b> — 작업구분은 도면 함체(RN) 위치로 자동판정, ⚠️는 현장확인 요망. 자재는 러프 추정(도면 거리 있으면 반영), 공무 협의 후 확정. 시골 지번은 도로명 없음(정상).</div>
+
+  <div id="toast"></div>
+
+<script>
+  const KAKAO_KEY = '697c25888cacee170fe5b79ff53d216a';
+
+    let jobs = [];
+
+  const STAT={go:'작업중',done:'작업완료',move:'이동중'};
+  const WCLS={'전주':'t-jeonju','맨홀':'t-manhole','구내':'t-gunae'};
+  const WLBL={'전주':'전주 고소','맨홀':'맨홀','구내':'구내·기타'};
+  const state={};
+  const enc=s=>encodeURIComponent(s);
+
+  (function(){const d=new Date(),w=['일','월','화','수','목','금','토'][d.getDay()];
+    document.getElementById('today').textContent=`${d.getMonth()+1}/${d.getDate()} (${w})`;})();
+
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1400);}
+  function copyText(txt){
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('📋 복사됨')).catch(()=>toast('복사 실패'));}
+    else{const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('📋 복사됨');}catch(e){}a.remove();}}
+  function copyRoad(no){const j=jobs[no-1];if(j.road)copyText(j.road);}
+
+  function navKakao(no){const j=jobs[no-1];
+    if(j.lat) location.href=`https://map.kakao.com/link/to/${enc(j.short)},${j.lat},${j.lng}`;
+    else location.href=`https://map.kakao.com/link/search/${enc(j.short)}`;}
+  function navTmap(no){const j=jobs[no-1];
+    if(j.lat) location.href=`tmap://route?goalname=${enc(j.short)}&goalx=${j.lng}&goaly=${j.lat}`;
+    else location.href=`tmap://search?name=${enc(j.short)}`;}
+  function navRoad(no){const j=jobs[no-1];
+    if(j.lat) location.href=`https://map.kakao.com/link/roadview/${j.lat},${j.lng}`;
+    else location.href=`https://map.kakao.com/link/map/${enc(j.short)}`;}
+  function setStatus(no,key){state[no]=(state[no]===key)?null:key;render();}
+
+  function render(){
+    document.getElementById('list').innerHTML=jobs.map(j=>{
+      const s=state[j.no];
+      const chip=(k,l)=>`<button class="chip ${s===k?('on-'+k):''}" onclick="setStatus(${j.no},'${k}')">${l}</button>`;
+      const wtag=`<div class="wtag ${WCLS[j.work]}">${WLBL[j.work]}${j.warn?' <span class="w">⚠️확인</span>':''}</div>`;
+      let roadEl;
+      if(j.road===null) roadEl=`<div class="roadbig load">🛣️ 도로명 불러오는 중…</div>`;
+      else if(j.road)   roadEl=`<div class="roadbig" onclick="copyRoad(${j.no})">🛣️ ${j.road}<span class="cp">📋 복사</span></div>`;
+      else              roadEl=`<div class="roadnone">⚠️ 도로명 없음 · 랜드마크로 확인</div>`;
+      return `<div class="card">
+        <div class="top">
+          <div class="num">${j.no}</div>
+          <div class="info">
+            ${wtag}
+            ${roadEl}
+            <div class="jibun"><span class="lbl">지번</span>${j.short}</div>
+            <div class="detail">${j.detail}</div>
+            <div class="meta">케이블 ${j.mat}</div>
+          </div>
+        </div>
+        <div class="navrow">
+          <button class="nav k" onclick="navKakao(${j.no})">🗺️ 카카오맵</button>
+          <button class="nav t" onclick="navTmap(${j.no})">🚗 티맵</button>
+          <button class="nav r${j.lat?'':' off'}" onclick="navRoad(${j.no})">🛰️ 로드뷰</button>
+        </div>
+        <div class="status">${chip('go','작업중')}${chip('done','작업완료')}${chip('move','이동중')}</div>
+      </div>`;
+    }).join('');
+  }
+  function copyReport(){
+    const sel=jobs.filter(j=>state[j.no]);
+    if(sel.length===0){toast('상태를 먼저 선택하세요');return;}
+    const lines=sel.map(j=>`${j.no}. ${j.code}\n${j.report} ${STAT[state[j.no]]}`).join('\n');
+    document.getElementById('out').textContent=lines;
+    copyText(lines);
+  }
+
+  function markManual(){jobs.forEach(j=>{if(j.road===null)j.road='';});render();}
+  function initGeo(){
+    if(!window.kakao||!kakao.maps){document.getElementById('setup').style.display='block';markManual();return;}
+    kakao.maps.load(()=>{
+      const geo=new kakao.maps.services.Geocoder();
+      jobs.forEach(j=>{
+        geo.addressSearch(j.jibun,(res,status)=>{
+          if(status===kakao.maps.services.Status.OK&&res&&res[0]){
+            const r=res[0];
+            j.road=r.road_address?r.road_address.address_name:'';
+            j.lat=r.y; j.lng=r.x;
+          }else{ j.road=''; }
+          render();
+        });
+      });
+    });
+  }
+
+  function boot(){
+    jobs=(window.JOBS||[]).map(j=>Object.assign({},j));
+    jobs.forEach(j=>{ j.road=null; j.lat=null; j.lng=null; j.short=j.jibun.replace(/^경기 \S+시 /,''); });
+    render();
+    if(KAKAO_KEY==='YOUR_KAKAO_JAVASCRIPT_KEY'){document.getElementById('setup').style.display='block';markManual();}
+    else{
+      const sc=document.createElement('script');
+      sc.src='//dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&libraries=services&autoload=false';
+      sc.onload=initGeo; sc.onerror=()=>{document.getElementById('setup').style.display='block';markManual();};
+      document.head.appendChild(sc);
+    }
+  }
+  // ▼ jobs.js(오늘 작업목록)만 매일 교체 — 캐시 무시 로드
+  (function(){
+    const s=document.createElement('script');
+    s.src='jobs.js?t='+Date.now();
+    s.onload=boot;
+    s.onerror=function(){document.getElementById('list').innerHTML='<div class="hint">⚠️ jobs.js 를 못 불러왔어요. docs/jobs.js 가 올라갔는지 확인하세요.</div>';};
+    document.head.appendChild(s);
+  })();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 <style>
   :root{--navy:#14213d;--red:#c8102e;--ink:#1a1a1a;--line:#e3e5ea;--bg:#eef0f3;
     --kakao:#FEE500;--kakaoInk:#3a1d1d;--tmap:#2c6ef2;--road:#127a3a;
-    --go:#f59e0b;--done:#16a34a;--move:#2563eb;}
+    --go:#f59e0b;--done:#16a34a;--move:#2563eb;--undone:#64748b;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{margin:0;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
     background:var(--bg);color:var(--ink);padding:14px 12px 44px;}
@@ -56,11 +56,12 @@
   .nav.r.off{background:#eef0f3;color:#9aa0a8;}
   .status{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #e6e8ec;}
   .chip{flex:1;border:1.5px solid var(--line);background:#fafbfc;border-radius:10px;padding:9px 0;
-    font-size:14px;font-weight:700;color:#667;cursor:pointer;}
+    font-size:13px;font-weight:700;color:#667;cursor:pointer;}
   .chip:active{transform:scale(.98);}
   .chip.on-go{background:var(--go);border-color:var(--go);color:#fff;}
   .chip.on-done{background:var(--done);border-color:var(--done);color:#fff;}
   .chip.on-move{background:var(--move);border-color:var(--move);color:#fff;}
+  .chip.on-undone{background:var(--undone);border-color:var(--undone);color:#fff;}
   .report{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:4px;}
   .report h2{margin:0 0 6px;font-size:17px;color:var(--navy);}
   .report p{margin:0;font-size:13px;color:#667;line-height:1.5;}
@@ -126,7 +127,7 @@
 
     let jobs = [];
 
-  const STAT={go:'작업중',done:'작업완료',move:'이동중'};
+  const STAT={go:'작업중',done:'작업완료',move:'이동중',undone:'미완료'};
   const WCLS={'전주':'t-jeonju','맨홀':'t-manhole','구내':'t-gunae'};
   const WLBL={'전주':'전주 고소','맨홀':'맨홀','구내':'구내·기타'};
   const state={};
@@ -178,7 +179,7 @@
           <button class="nav t" onclick="navTmap(${j.no})">🚗 티맵</button>
           <button class="nav r${j.lat?'':' off'}" onclick="navRoad(${j.no})">🛰️ 로드뷰</button>
         </div>
-        <div class="status">${chip('go','작업중')}${chip('done','작업완료')}${chip('move','이동중')}</div>
+        <div class="status">${chip('go','작업중')}${chip('done','작업완료')}${chip('move','이동중')}${chip('undone','미완료')}</div>
       </div>`;
     }).join('');
     renderMatSum();

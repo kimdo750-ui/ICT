@@ -24,8 +24,10 @@
   .card{background:#fff;border:1px solid var(--line);border-radius:18px;margin-bottom:14px;padding:14px;
     box-shadow:0 2px 6px rgba(20,33,61,.06);}
   .top{display:flex;align-items:flex-start;gap:12px;}
-  .num{flex:0 0 40px;height:40px;border-radius:50%;background:var(--red);color:#fff;font-size:19px;
-    font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .numcol{flex:0 0 42px;display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:2px;}
+  .num{width:40px;height:40px;border-radius:50%;background:var(--red);color:#fff;font-size:19px;
+    font-weight:800;display:flex;align-items:center;justify-content:center;}
+  .code{font-size:12.5px;font-weight:800;color:var(--navy);letter-spacing:.3px;}
   .info{flex:1;min-width:0;}
   .wtag{display:inline-block;font-size:13px;font-weight:900;padding:4px 11px;border-radius:8px;margin-bottom:8px;}
   .t-jeonju{background:#fff0e6;color:#c2410c;border:1.5px solid #f7c9a8;}
@@ -146,7 +148,7 @@
       else              roadEl=`<div class="roadnone">⚠️ 도로명 없음 · 랜드마크로 확인</div>`;
       return `<div class="card">
         <div class="top">
-          <div class="num">${j.no}</div>
+          <div class="numcol"><div class="num">${j.no}</div><div class="code">${j.code}</div></div>
           <div class="info">
             ${wtag}
             ${roadEl}
@@ -167,7 +169,7 @@
   function copyReport(){
     const sel=jobs.filter(j=>state[j.no]);
     if(sel.length===0){toast('상태를 먼저 선택하세요');return;}
-    const lines=sel.map(j=>`${j.no}. ${j.report} ${STAT[state[j.no]]}`).join('\n');
+    const lines=sel.map(j=>`${j.no}. ${j.code}\n${j.report} ${STAT[state[j.no]]}`).join('\n');
     document.getElementById('out').textContent=lines;
     copyText(lines);
   }

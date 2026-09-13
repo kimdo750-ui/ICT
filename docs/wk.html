@@ -120,6 +120,16 @@
 
   <div class="note"><b>확인</b> — 작업구분은 도면 함체(RN) 위치로 자동판정, ⚠️는 현장확인 요망. 자재는 러프 추정(도면 거리 있으면 반영), 공무 협의 후 확정. 시골 지번은 도로명 없음(정상).</div>
 
+  <div id="rvwrap" style="display:none;position:fixed;inset:0;z-index:9999;background:#000;">
+    <div style="position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(0,0,0,.72);color:#fff;z-index:2;">
+      <b style="font-size:15px;">🛰️ 로드뷰</b>
+      <span id="rvttl" style="font-size:13px;color:#cfd6de;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button onclick="closeRoad()" style="border:0;background:#c8102e;color:#fff;font-size:14px;font-weight:800;border-radius:9px;padding:8px 14px;">닫기 ✕</button>
+    </div>
+    <div id="rvpano" style="position:absolute;inset:52px 0 0 0;"></div>
+    <div id="rvmsg" style="position:absolute;left:0;right:0;top:55%;text-align:center;color:#fff;font-size:15px;font-weight:700;padding:0 24px;line-height:1.6;"></div>
+  </div>
+
   <div id="toast"></div>
 
 <script>
@@ -149,9 +159,22 @@
   function navTmap(no){const j=jobs[no-1];
     if(j.lat) location.href=`tmap://route?goalname=${enc(j.short)}&goalx=${j.lng}&goaly=${j.lat}`;
     else location.href=`tmap://search?name=${enc(j.short)}`;}
+  let _rv=null,_rvc=null;
   function navRoad(no){const j=jobs[no-1];
-    if(j.lat) location.href=`https://map.kakao.com/link/roadview/${j.lat},${j.lng}`;
-    else location.href=`https://map.kakao.com/link/map/${enc(j.short)}`;}
+    if(!j.lat){toast('아직 좌표(도로명) 조회 전/실패 지점이에요');return;}
+    if(!(window.kakao&&kakao.maps&&kakao.maps.Roadview)){location.href=`https://map.kakao.com/link/roadview/${j.lat},${j.lng}`;return;}
+    openRoad(+j.lat,+j.lng,j.short);}
+  function openRoad(lat,lng,label){
+    const box=document.getElementById('rvwrap');box.style.display='block';
+    document.getElementById('rvttl').textContent=label||'';
+    const msg=document.getElementById('rvmsg');msg.textContent='로드뷰 찾는 중…';
+    if(!_rv){_rv=new kakao.maps.Roadview(document.getElementById('rvpano'));_rvc=new kakao.maps.RoadviewClient();}
+    const pos=new kakao.maps.LatLng(lat,lng);
+    const show=id=>{msg.textContent='';_rv.setPanoId(id,pos);setTimeout(()=>_rv.relayout(),80);};
+    _rvc.getNearestPanoId(pos,50,id=>{ if(id){show(id);return;}
+      _rvc.getNearestPanoId(pos,200,id2=>{ if(id2){show(id2);return;}
+        msg.innerHTML='이 지점 200m 내 로드뷰가 없어요 (시골 전주·공터)<br><a href="https://map.kakao.com/link/roadview/'+lat+','+lng+'" style="color:#7fd0a0;font-weight:800">카카오맵 앱에서 열기 ▶</a>';});});}
+  function closeRoad(){document.getElementById('rvwrap').style.display='none';}
   function setStatus(no,key){state[no]=(state[no]===key)?null:key;render();}
 
   function render(){

@@ -69,24 +69,27 @@ body{display:flex;flex-direction:column;overflow:hidden}
 
 /* 리스트 시트 */
 .sheet{flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);
-  max-height:42vh;display:flex;flex-direction:column}
-.sheetbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
-.sheetbar .ttl{font-size:13px;font-weight:700;flex:1}
+  height:48vh;min-height:150px;max-height:78vh;display:flex;flex-direction:column}
+.grip{height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  cursor:ns-resize;touch-action:none}
+.grip::before{content:"";width:44px;height:5px;border-radius:3px;background:var(--line)}
+.sheetbar{display:flex;align-items:center;gap:8px;padding:6px 12px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.sheetbar .ttl{font-size:14px;font-weight:700;flex:1 0 100%}
 .sheetbar button{background:var(--bg);border:1px solid var(--line);color:var(--txt);
-  font-size:12px;padding:6px 9px;border-radius:7px}
-.progress{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin:0 12px 6px}
+  font-size:13px;padding:8px 11px;border-radius:8px}
+.progress{height:7px;background:var(--bg);border-radius:3px;overflow:hidden;margin:8px 12px 6px}
 .progress i{display:block;height:100%;background:var(--gray);width:0%}
-.list{overflow-y:auto;padding:4px 8px 10px}
-.row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid var(--line)}
-.dot{width:16px;height:16px;border-radius:50%;flex:0 0 auto;border:2px solid #fff}
+.list{overflow-y:auto;padding:4px 8px 14px;flex:1}
+.row{display:flex;align-items:center;gap:11px;padding:12px 8px;border-bottom:1px solid var(--line)}
+.dot{width:20px;height:20px;border-radius:50%;flex:0 0 auto;border:2px solid #fff}
 .dot.todo{background:var(--blue)}.dot.done{background:var(--gray)}
 .row .info{flex:1;min-width:0}
-.row .nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .nm.done{color:var(--sub);text-decoration:line-through}
-.row .meta{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .go{background:none;border:none;color:var(--accent);font-size:12px;padding:4px 6px}
-.row .del{background:none;border:none;color:#e5484d;font-size:16px;padding:4px 6px}
-.empty{color:var(--sub);text-align:center;padding:22px;font-size:13px}
+.row .meta{font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.row .go{background:none;border:none;color:var(--accent);font-size:14px;padding:6px 8px}
+.row .del{background:none;border:none;color:#e5484d;font-size:18px;padding:6px 8px}
+.empty{color:var(--sub);text-align:center;padding:26px;font-size:14px}
 
 /* 모달 */
 .modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:none;
@@ -162,7 +165,8 @@ input[type=file]{padding:8px}
   </div>
 </div>
 
-<div class="sheet">
+<div class="sheet" id="sheet">
+  <div class="grip" id="grip"></div>
   <div class="sheetbar">
     <span class="ttl">작업 목록</span>
     <button onclick="bulkOpen()">일괄입력</button>
@@ -531,6 +535,24 @@ function importFile(ev){
 }
 function exportJSON(){ dl('작업지도_'+today()+'.json',JSON.stringify(state),'application/json'); }
 function clearAll(){ if(confirm('모든 작업을 삭제할까요? (노선도 사진 포함)')){ state={items:[],routeImg:null,mapView:state.mapView}; save(); renderRoute(); renderAll(); } }
+
+/* ---------- 시트 높이 드래그 ---------- */
+(function(){
+  const grip=document.getElementById('grip'), sheet=document.getElementById('sheet');
+  let dragging=false;
+  function setH(clientY){
+    const h=window.innerHeight-clientY;
+    const min=110, max=window.innerHeight*0.82;
+    sheet.style.height=Math.max(min,Math.min(max,h))+'px';
+    if(map) setTimeout(()=>map.invalidateSize(),0);
+  }
+  grip.addEventListener('touchstart',e=>{dragging=true;},{passive:true});
+  grip.addEventListener('touchmove',e=>{ if(dragging){setH(e.touches[0].clientY);e.preventDefault();} },{passive:false});
+  grip.addEventListener('touchend',()=>{dragging=false;});
+  grip.addEventListener('mousedown',e=>{dragging=true;e.preventDefault();});
+  window.addEventListener('mousemove',e=>{ if(dragging)setH(e.clientY); });
+  window.addEventListener('mouseup',()=>{dragging=false;});
+})();
 
 /* ---------- 시작 ---------- */
 load(); initMap(); renderRoute(); renderAll();

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>현장 작업 지도</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --blue:#1e6fff;      /* 작업전 */
+  --gray:#9aa3ad;      /* 완료 */
+  --bg:#0f1115; --panel:#1a1d24; --line:#2b303b;
+  --txt:#e8ebf0; --sub:#9aa3ad; --accent:#ffcf33;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕",sans-serif}
+body{display:flex;flex-direction:column;overflow:hidden}
+
+/* 상단 바 */
+.top{flex:0 0 auto;background:var(--panel);border-bottom:1px solid var(--line);
+  padding:10px 12px;display:flex;align-items:center;gap:10px}
+.top h1{font-size:16px;margin:0;font-weight:700;letter-spacing:-.3px;flex:1}
+.count{font-size:12px;color:var(--sub);white-space:nowrap}
+.count b{color:var(--accent)}
+
+/* 탭 */
+.tabs{flex:0 0 auto;display:flex;background:var(--panel);border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:none;color:var(--sub);
+  padding:11px 0;font-size:14px;font-weight:600;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--txt);border-bottom-color:var(--accent)}
+
+/* 지도 영역 */
+.stage{flex:1 1 auto;position:relative;overflow:hidden;min-height:0}
+#map{position:absolute;inset:0;display:none}
+#map.on{display:block}
+.routewrap{position:absolute;inset:0;display:none;overflow:auto;background:#111}
+.routewrap.on{display:block}
+.routeinner{position:relative;width:100%;min-height:100%}
+.routeinner img{display:block;width:100%;height:auto;user-select:none;pointer-events:none}
+.routeempty{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;color:var(--sub);padding:24px;text-align:center}
+.routeempty .big{font-size:44px}
+
+/* 노선도 위 핀 */
+.pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;
+  border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.6);display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:800;color:#fff;cursor:pointer}
+.pin.todo{background:var(--blue)}
+.pin.done{background:var(--gray)}
+
+/* Leaflet divIcon 핀 */
+.mpin{width:26px;height:26px;border-radius:50%;border:3px solid #fff;
+  box-shadow:0 1px 5px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#fff}
+.mpin.todo{background:var(--blue)}
+.mpin.done{background:var(--gray)}
+
+/* 하단 플로팅 버튼 */
+.fabs{position:absolute;right:12px;bottom:12px;z-index:500;display:flex;flex-direction:column;gap:10px}
+.fab{width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:#111;
+  font-size:22px;font-weight:800;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+.fab.sec{background:var(--panel);color:var(--txt);border:1px solid var(--line);font-size:19px}
+.hint{position:absolute;left:12px;top:12px;z-index:500;background:rgba(0,0,0,.72);
+  color:#fff;font-size:12px;padding:6px 10px;border-radius:8px;max-width:62%;line-height:1.4}
+
+/* 리스트 시트 */
+.sheet{flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);
+  max-height:42vh;display:flex;flex-direction:column}
+.sheetbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.sheetbar .ttl{font-size:13px;font-weight:700;flex:1}
+.sheetbar button{background:var(--bg);border:1px solid var(--line);color:var(--txt);
+  font-size:12px;padding:6px 9px;border-radius:7px}
+.progress{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin:0 12px 6px}
+.progress i{display:block;height:100%;background:var(--gray);width:0%}
+.list{overflow-y:auto;padding:4px 8px 10px}
+.row{display:flex;align-items:center;gap:10px;padding:9px 8px;border-bottom:1px solid var(--line)}
+.dot{width:16px;height:16px;border-radius:50%;flex:0 0 auto;border:2px solid #fff}
+.dot.todo{background:var(--blue)}.dot.done{background:var(--gray)}
+.row .info{flex:1;min-width:0}
+.row .nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm.done{color:var(--sub);text-decoration:line-through}
+.row .meta{font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .go{background:none;border:none;color:var(--accent);font-size:12px;padding:4px 6px}
+.row .del{background:none;border:none;color:#e5484d;font-size:16px;padding:4px 6px}
+.empty{color:var(--sub);text-align:center;padding:22px;font-size:13px}
+
+/* 모달 */
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.6);display:none;
+  align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.card{background:var(--panel);width:100%;max-width:520px;border-radius:16px 16px 0 0;
+  padding:16px 16px calc(16px + env(safe-area-inset-bottom,0));border:1px solid var(--line)}
+.card h2{margin:0 0 12px;font-size:16px}
+.card label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}
+.card input,.card textarea{width:100%;background:var(--bg);border:1px solid var(--line);
+  color:var(--txt);border-radius:9px;padding:10px;font-size:15px;font-family:inherit}
+.card textarea{min-height:90px;resize:vertical}
+.card .btns{display:flex;gap:8px;margin-top:14px}
+.card .btns button{flex:1;padding:12px;border-radius:10px;border:none;font-size:15px;font-weight:700}
+.btn-p{background:var(--accent);color:#111}
+.btn-s{background:var(--bg);color:var(--txt);border:1px solid var(--line)!important}
+.tip{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.5}
+input[type=file]{padding:8px}
+.row2{display:flex;gap:8px}
+.row2>div{flex:1}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.seg button{flex:1;min-width:60px;background:var(--bg);border:1px solid var(--line);
+  color:var(--sub);padding:9px 4px;border-radius:8px;font-size:13px;font-weight:600}
+.seg button.on{background:var(--accent);color:#111;border-color:var(--accent)}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.thumb{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .x{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;
+  background:#e5484d;color:#fff;border:2px solid var(--panel);font-size:12px;line-height:1;padding:0}
+.addphoto{width:64px;height:64px;border-radius:8px;border:1px dashed var(--line);
+  background:var(--bg);color:var(--sub);font-size:22px}
+.totalm{font-size:12px;color:var(--sub);padding:0 12px 8px}
+.totalm b{color:var(--accent);font-size:14px}
+.row .len{font-size:12px;color:var(--accent);font-weight:700;white-space:nowrap}
+.viewer{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.9);display:none;
+  align-items:center;justify-content:center;padding:16px}
+.viewer.on{display:flex}
+.viewer img{max-width:100%;max-height:100%;border-radius:8px}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>현장 작업 지도</h1>
+  <div class="count">완료 <b id="cDone">0</b>/<span id="cAll">0</span></div>
+</div>
+
+<div class="tabs">
+  <button id="tabMap" class="on" onclick="switchMode('map')">🗺️ 실제지도</button>
+  <button id="tabRoute" onclick="switchMode('route')">📋 노선도</button>
+</div>
+
+<div class="stage">
+  <!-- 실제 지도 -->
+  <div id="map" class="on"></div>
+  <div class="hint" id="mapHint">지도를 길게 눌러(또는 클릭) 작업 위치 추가</div>
+
+  <!-- 노선도 -->
+  <div class="routewrap" id="routewrap">
+    <div class="routeinner" id="routeinner">
+      <div class="routeempty" id="routeempty">
+        <div class="big">🗺️</div>
+        <div>지시서 노선도 사진을 올리면<br>그 위에 작업 위치를 찍을 수 있어요</div>
+        <button class="fab sec" style="width:auto;height:auto;padding:10px 16px;border-radius:10px"
+          onclick="document.getElementById('routeFile').click()">📷 노선도 사진 올리기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fabs">
+    <button class="fab sec" id="fabGps" title="현재위치" onclick="locateMe()">📍</button>
+    <button class="fab" id="fabAdd" title="작업 추가" onclick="quickAdd()">＋</button>
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="sheetbar">
+    <span class="ttl">작업 목록</span>
+    <button onclick="bulkOpen()">일괄입력</button>
+    <button onclick="exportCSV()">CSV</button>
+    <button onclick="document.getElementById('impFile').click()">불러오기</button>
+    <button onclick="clearAll()" style="color:#e5484d">전체삭제</button>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="totalm" id="totalm">포설 <b>0</b> m · 완료 0 m</div>
+  <div class="list" id="list"></div>
+</div>
+
+<!-- 위치 편집 모달 -->
+<div class="modal" id="mEdit">
+  <div class="card">
+    <h2 id="mTitle">작업 위치</h2>
+    <label>이름 / 지점</label>
+    <input id="fName" placeholder="예: 팔야5링 12노드 (부평간86)">
+    <div class="row2">
+      <div>
+        <label>포설 길이 (m)</label>
+        <input id="fLen" type="number" inputmode="decimal" placeholder="예: 120">
+      </div>
+      <div>
+        <label>지시서번호</label>
+        <input id="fMemo" placeholder="예: 0419">
+      </div>
+    </div>
+    <label>케이블 종류</label>
+    <div class="seg" id="segCable">
+      <button data-v="광케이블">광케이블</button>
+      <button data-v="485">485</button>
+      <button data-v="SMPWC">SMPWC</button>
+      <button data-v="기타">기타</button>
+    </div>
+    <label>작업 사진</label>
+    <div class="thumbs" id="thumbs"></div>
+    <label>작업 내역 메모</label>
+    <input id="fNote" placeholder="예: 관로포설, 접속 완료">
+    <label>주소 (실제지도에 자동 표시하려면)</label>
+    <input id="fAddr" placeholder="예: 경기 남양주시 진접읍 ...">
+    <div class="btns">
+      <button class="btn-s" onclick="closeEdit()">취소</button>
+      <button class="btn-p" onclick="saveEdit()">저장</button>
+    </div>
+    <div class="tip" id="editTip"></div>
+  </div>
+</div>
+
+<!-- 일괄입력 모달 -->
+<div class="modal" id="mBulk">
+  <div class="card">
+    <h2>작업지시서 일괄입력</h2>
+    <label>한 줄에 하나씩 붙여넣기 (이름 또는 "이름, 주소")</label>
+    <textarea id="bulkText" placeholder="팔야5링 12노드, 경기 남양주시 진접읍 부평리
+팔야6링 21노드, 남양주 장현
+별내8링 10노드, 남양주 별내동 송산로"></textarea>
+    <div class="btns">
+      <button class="btn-s" onclick="closeModal('mBulk')">취소</button>
+      <button class="btn-p" onclick="bulkAdd()">추가</button>
+    </div>
+    <div class="tip">주소를 같이 넣으면 실제지도에 자동으로 찍히고, 이름만 넣으면 목록에만 들어갑니다. 노선도엔 사진 위에서 핀을 직접 찍어 연결하세요.</div>
+  </div>
+</div>
+
+<input type="file" id="routeFile" accept="image/*" style="display:none" onchange="loadRouteImg(event)">
+<input type="file" id="impFile" accept=".json,.csv" style="display:none" onchange="importFile(event)">
+<input type="file" id="photoFile" accept="image/*" capture="environment" multiple style="display:none" onchange="addPhotos(event)">
+<div class="viewer" id="viewer" onclick="this.classList.remove('on')"><img id="viewerImg" src=""></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ---------- 데이터 ---------- */
+const KEY='fieldworkmap_v1';
+let state={ items:[], routeImg:null, mapView:{lat:37.65,lng:127.06,z:12} };
+let mode='map';           // 'map' | 'route'
+let markers={};           // id -> leaflet marker
+let editingId=null;       // 편집중 id
+let pendingLatLng=null;   // 지도 클릭으로 임시 좌표
+let pendingRoute=null;    // 노선도 클릭 좌표(%)
+let editPhotos=[];        // 편집중 사진(썸네일 dataURL 배열)
+let editCable='';         // 편집중 케이블 종류
+
+function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); if(s) state=Object.assign(state,s);}catch(e){} }
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){alert('저장 공간이 가득 찼어요. 노선도 사진이 너무 크면 용량이 부족할 수 있습니다.');} }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+/* ---------- 지도 ---------- */
+let map, tile;
+function initMap(){
+  map=L.map('map',{zoomControl:true,attributionControl:false})
+        .setView([state.mapView.lat,state.mapView.lng],state.mapView.z);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+  map.on('click',e=>{ pendingLatLng=e.latlng; openEdit(null); });
+  map.on('moveend',()=>{ const c=map.getCenter(); state.mapView={lat:c.lat,lng:c.lng,z:map.getZoom()}; save(); });
+  setTimeout(()=>map.invalidateSize(),200);
+}
+function mIcon(status){
+  return L.divIcon({className:'',html:`<div class="mpin ${status}"></div>`,iconSize:[26,26],iconAnchor:[13,13]});
+}
+function drawMarkers(){
+  for(const id in markers){ map.removeLayer(markers[id]); }
+  markers={};
+  state.items.forEach(it=>{
+    if(it.lat==null||it.lng==null) return;
+    const m=L.marker([it.lat,it.lng],{icon:mIcon(it.status)}).addTo(map);
+    m.on('click',()=>toggleStatus(it.id));
+    m.bindTooltip(it.name||'(이름없음)',{direction:'top',offset:[0,-10]});
+    markers[it.id]=m;
+  });
+}
+function locateMe(){
+  if(!navigator.geolocation){alert('이 기기는 위치를 지원하지 않아요');return;}
+  navigator.geolocation.getCurrentPosition(p=>{
+    const {latitude,longitude}=p.coords;
+    if(mode!=='map') switchMode('map');
+    map.setView([latitude,longitude],16);
+    L.circleMarker([latitude,longitude],{radius:8,color:'#fff',weight:2,fillColor:'#ff4081',fillOpacity:1}).addTo(map);
+  },()=>alert('위치를 가져올 수 없어요 (권한/GPS 확인)'),{enableHighAccuracy:true,timeout:8000});
+}
+
+/* ---------- 노선도 ---------- */
+function loadRouteImg(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ state.routeImg=r.result; save(); renderRoute(); };
+  r.readAsDataURL(f);
+  ev.target.value='';
+}
+function renderRoute(){
+  const inner=document.getElementById('routeinner');
+  const empty=document.getElementById('routeempty');
+  inner.querySelectorAll('img,.pin').forEach(el=>el.remove());
+  if(!state.routeImg){ empty.style.display='flex'; return; }
+  empty.style.display='none';
+  const img=document.createElement('img');
+  img.src=state.routeImg;
+  img.onload=()=>{ placePins(); };
+  img.onclick=e=>{
+    const rect=img.getBoundingClientRect();
+    pendingRoute={ x:((e.clientX-rect.left)/rect.width*100), y:((e.clientY-rect.top)/rect.height*100) };
+    openEdit(null);
+  };
+  inner.appendChild(img);
+}
+function placePins(){
+  const inner=document.getElementById('routeinner');
+  inner.querySelectorAll('.pin').forEach(el=>el.remove());
+  state.items.forEach((it,i)=>{
+    if(it.rx==null||it.ry==null) return;
+    const p=document.createElement('div');
+    p.className='pin '+it.status;
+    p.style.left=it.rx+'%'; p.style.top=it.ry+'%';
+    p.textContent=(i+1);
+    p.onclick=ev=>{ev.stopPropagation();toggleStatus(it.id);};
+    inner.appendChild(p);
+  });
+}
+
+/* ---------- 위치 CRUD ---------- */
+function quickAdd(){ pendingLatLng=null; pendingRoute=null; openEdit(null);
+  if(mode==='map'){ pendingLatLng=map.getCenter(); } }
+function openEdit(id){
+  editingId=id;
+  const it=id? state.items.find(x=>x.id===id):null;
+  document.getElementById('mTitle').textContent = id? '작업 수정':'작업 추가';
+  document.getElementById('fName').value = it? (it.name||''):'';
+  document.getElementById('fMemo').value = it? (it.memo||''):'';
+  document.getElementById('fLen').value = it&&it.len? it.len:'';
+  document.getElementById('fNote').value = it? (it.note||''):'';
+  document.getElementById('fAddr').value = it? (it.addr||''):'';
+  editPhotos = it&&it.photos? it.photos.slice():[];
+  editCable = it? (it.cable||''):'';
+  renderThumbs(); renderCableSeg();
+  let tip='';
+  if(pendingLatLng) tip='실제지도 위치가 지정됩니다.';
+  else if(pendingRoute) tip='노선도 사진 위 위치가 지정됩니다.';
+  else if(!id) tip='주소를 넣으면 실제지도에 자동으로 찍혀요.';
+  document.getElementById('editTip').textContent=tip;
+  document.getElementById('mEdit').classList.add('on');
+}
+function closeEdit(){ document.getElementById('mEdit').classList.remove('on'); pendingLatLng=null; pendingRoute=null; }
+async function saveEdit(){
+  const name=document.getElementById('fName').value.trim();
+  const memo=document.getElementById('fMemo').value.trim();
+  const addr=document.getElementById('fAddr').value.trim();
+  if(!name){ alert('이름을 입력하세요'); return; }
+  const len=parseFloat(document.getElementById('fLen').value)||0;
+  const note=document.getElementById('fNote').value.trim();
+  let it;
+  if(editingId){ it=state.items.find(x=>x.id===editingId); }
+  else { it={id:uid(),status:'todo',lat:null,lng:null,rx:null,ry:null}; state.items.push(it); }
+  it.name=name; it.memo=memo; it.addr=addr;
+  it.len=len; it.note=note; it.cable=editCable; it.photos=editPhotos.slice();
+  if(pendingLatLng){ it.lat=pendingLatLng.lat; it.lng=pendingLatLng.lng; }
+  if(pendingRoute){ it.rx=pendingRoute.x; it.ry=pendingRoute.y; }
+  // 주소만 넣고 좌표 없으면 지오코딩 시도
+  if(addr && it.lat==null){ await geocode(it,addr); }
+  closeEdit(); save(); renderAll();
+}
+async function geocode(it,addr){
+  try{
+    const u='https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=kr&q='+encodeURIComponent(addr);
+    const r=await fetch(u,{headers:{'Accept-Language':'ko'}});
+    const j=await r.json();
+    if(j&&j[0]){ it.lat=parseFloat(j[0].lat); it.lng=parseFloat(j[0].lon); }
+  }catch(e){}
+}
+/* 사진: 촬영/첨부 → 압축 썸네일 */
+function addPhotos(ev){
+  const files=[...ev.target.files]; if(!files.length) return;
+  let done=0;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const max=800, sc=Math.min(1,max/Math.max(img.width,img.height));
+        const cv=document.createElement('canvas');
+        cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        editPhotos.push(cv.toDataURL('image/jpeg',0.55));
+        if(++done===files.length) renderThumbs();
+      };
+      img.src=r.result;
+    };
+    r.readAsDataURL(f);
+  });
+  ev.target.value='';
+}
+function renderThumbs(){
+  const box=document.getElementById('thumbs');
+  box.innerHTML='';
+  editPhotos.forEach((src,i)=>{
+    const d=document.createElement('div'); d.className='thumb';
+    d.innerHTML=`<img src="${src}" onclick="viewPhoto('${i}')"><button class="x" onclick="rmPhoto(${i})">×</button>`;
+    box.appendChild(d);
+  });
+  const add=document.createElement('button'); add.className='addphoto'; add.textContent='＋';
+  add.onclick=()=>document.getElementById('photoFile').click();
+  box.appendChild(add);
+}
+function rmPhoto(i){ editPhotos.splice(i,1); renderThumbs(); }
+function viewPhoto(i){ document.getElementById('viewerImg').src=editPhotos[i]; document.getElementById('viewer').classList.add('on'); }
+function viewSrc(src){ document.getElementById('viewerImg').src=src; document.getElementById('viewer').classList.add('on'); }
+function renderCableSeg(){
+  document.querySelectorAll('#segCable button').forEach(b=>{
+    b.classList.toggle('on',b.dataset.v===editCable);
+    b.onclick=()=>{ editCable=(editCable===b.dataset.v?'':b.dataset.v); renderCableSeg(); };
+  });
+}
+
+function toggleStatus(id){
+  const it=state.items.find(x=>x.id===id); if(!it) return;
+  it.status = it.status==='done'?'todo':'done';
+  save(); renderAll();
+}
+function delItem(id){
+  if(!confirm('이 작업을 삭제할까요?')) return;
+  state.items=state.items.filter(x=>x.id!==id); save(); renderAll();
+}
+function goItem(it){
+  if(it.lat!=null){ if(mode!=='map')switchMode('map'); map.setView([it.lat,it.lng],17); }
+  else if(it.rx!=null){ if(mode!=='route')switchMode('route'); }
+  else alert('이 작업은 위치가 지정돼 있지 않아요. 지도나 노선도에서 위치를 찍어주세요.');
+}
+
+/* ---------- 일괄입력 ---------- */
+function bulkOpen(){ document.getElementById('bulkText').value=''; document.getElementById('mBulk').classList.add('on'); }
+async function bulkAdd(){
+  const lines=document.getElementById('bulkText').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  for(const ln of lines){
+    const parts=ln.split(/[,\t]/).map(s=>s.trim());
+    const it={id:uid(),status:'todo',lat:null,lng:null,rx:null,ry:null,name:parts[0],memo:'',note:'',addr:parts[1]||'',len:0,cable:'',photos:[]};
+    state.items.push(it);
+    if(it.addr){ await geocode(it,it.addr); }
+  }
+  closeModal('mBulk'); save(); renderAll();
+}
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+
+/* ---------- 렌더 ---------- */
+function renderAll(){ drawMarkers(); placePins(); renderList(); renderCount(); }
+function renderList(){
+  const box=document.getElementById('list');
+  if(!state.items.length){ box.innerHTML='<div class="empty">작업이 없습니다. 지도를 누르거나 ＋ 로 추가하세요.</div>'; return; }
+  box.innerHTML='';
+  state.items.forEach((it,i)=>{
+    const loc = it.lat!=null?'📍지도':(it.rx!=null?'📋노선도':'—');
+    const bits=[loc];
+    if(it.cable) bits.push(esc(it.cable));
+    if(it.photos&&it.photos.length) bits.push('📷'+it.photos.length);
+    if(it.memo) bits.push(esc(it.memo));
+    if(it.note) bits.push(esc(it.note));
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`
+      <div class="dot ${it.status}" onclick="toggleStatus('${it.id}')"></div>
+      <div class="info" onclick="openEdit('${it.id}')">
+        <div class="nm ${it.status==='done'?'done':''}">${i+1}. ${esc(it.name)}</div>
+        <div class="meta">${bits.join(' · ')}</div>
+      </div>
+      ${it.len?`<div class="len">${it.len}m</div>`:''}
+      <button class="go" onclick="goItem(state.items.find(x=>x.id==='${it.id}'))">이동</button>
+      <button class="del" onclick="delItem('${it.id}')">🗑</button>`;
+    box.appendChild(row);
+  });
+}
+function renderCount(){
+  const all=state.items.length, done=state.items.filter(x=>x.status==='done').length;
+  document.getElementById('cDone').textContent=done;
+  document.getElementById('cAll').textContent=all;
+  document.getElementById('bar').style.width=(all?Math.round(done/all*100):0)+'%';
+  const totLen=state.items.reduce((s,x)=>s+(x.len||0),0);
+  const doneLen=state.items.filter(x=>x.status==='done').reduce((s,x)=>s+(x.len||0),0);
+  document.getElementById('totalm').innerHTML=`포설 <b>${fmt(totLen)}</b> m · 완료 ${fmt(doneLen)} m`;
+}
+function fmt(n){ return (Math.round(n*10)/10).toLocaleString(); }
+function esc(s){ return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
+/* ---------- 모드 전환 ---------- */
+function switchMode(m){
+  mode=m;
+  document.getElementById('tabMap').classList.toggle('on',m==='map');
+  document.getElementById('tabRoute').classList.toggle('on',m==='route');
+  document.getElementById('map').classList.toggle('on',m==='map');
+  document.getElementById('routewrap').classList.toggle('on',m==='route');
+  document.getElementById('fabGps').style.display = m==='map'?'block':'none';
+  document.getElementById('mapHint').style.display = m==='map'?'block':'none';
+  if(m==='map'){ setTimeout(()=>{map.invalidateSize();drawMarkers();},100); }
+  else { renderRoute(); }
+}
+
+/* ---------- 내보내기/가져오기 ---------- */
+function exportCSV(){
+  const head=['이름','상태','포설길이m','케이블','지시서번호','작업메모','사진수','주소','위도','경도','노선도X','노선도Y'];
+  const rows=state.items.map(it=>[it.name,it.status==='done'?'완료':'작업전',it.len||0,it.cable||'',
+    it.memo||'',it.note||'',(it.photos?it.photos.length:0),it.addr||'',
+    it.lat??'',it.lng??'',it.rx!=null?it.rx.toFixed(2):'',it.ry!=null?it.ry.toFixed(2):'']);
+  const csv=[head,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  dl('작업목록_'+today()+'.csv','\ufeff'+csv,'text/csv');
+}
+function today(){ const d=new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function dl(name,content,type){
+  const b=new Blob([content],{type}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+function importFile(ev){
+  const f=ev.target.files[0]; if(!f) return; const r=new FileReader();
+  r.onload=()=>{
+    try{
+      if(f.name.endsWith('.json')){ const j=JSON.parse(r.result); if(j.items){state=Object.assign(state,j);} }
+      else { // CSV
+        const lines=r.result.replace(/^\ufeff/,'').split(/\r?\n/).filter(Boolean); lines.shift();
+        lines.forEach(ln=>{
+          const c=ln.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map(s=>s.replace(/,$/,'').replace(/^"|"$/g,'').replace(/""/g,'"'));
+          state.items.push({id:uid(),name:c[0],status:c[1]==='완료'?'done':'todo',
+            len:c[2]?parseFloat(c[2]):0,cable:c[3]||'',memo:c[4]||'',note:c[5]||'',photos:[],
+            addr:c[7]||'',lat:c[8]?parseFloat(c[8]):null,lng:c[9]?parseFloat(c[9]):null,
+            rx:c[10]?parseFloat(c[10]):null,ry:c[11]?parseFloat(c[11]):null});
+        });
+      }
+      save(); renderAll(); alert('불러오기 완료');
+    }catch(e){ alert('파일을 읽을 수 없어요'); }
+  };
+  r.readAsText(f); ev.target.value='';
+}
+function exportJSON(){ dl('작업지도_'+today()+'.json',JSON.stringify(state),'application/json'); }
+function clearAll(){ if(confirm('모든 작업을 삭제할까요? (노선도 사진 포함)')){ state={items:[],routeImg:null,mapView:state.mapView}; save(); renderRoute(); renderAll(); } }
+
+/* ---------- 시작 ---------- */
+load(); initMap(); renderRoute(); renderAll();
+window.state=state;
+</script>
+</body>
+</html>

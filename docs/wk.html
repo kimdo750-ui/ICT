@@ -306,6 +306,7 @@
   function loadDB(){try{const s=JSON.parse(localStorage.getItem(LS));if(s)DB=Object.assign(DB,s);}catch(e){}}
   function saveDB(){try{localStorage.setItem(LS,JSON.stringify(DB));}catch(e){toast('저장공간 부족 — 사진 몇 장 지워주세요');}}
   function R(code){return DB.job[code]||(DB.job[code]={status:null,len:0,cable:'',note:'',photos:[]});}
+  function touch(code){R(code).t=Date.now();}   // 마지막 수정 시각 (오래된 기록 정리용)
   const byCode=c=>jobs.find(j=>j.code===c);
 
   (function(){const d=new Date(),w=['일','월','화','수','목','금','토'][d.getDay()];
@@ -341,7 +342,7 @@
         msg.innerHTML='이 지점 200m 내 로드뷰가 없어요 (시골 전주·공터)<br><a href="https://map.kakao.com/link/roadview/'+lat+','+lng+'" style="color:#7fd0a0;font-weight:800">카카오맵 앱에서 열기 ▶</a>';});});}
   function closeRoad(){document.getElementById('rvwrap').style.display='none';}
 
-  function setStatus(no,key){const r=R(jobs[no-1].code);r.status=(r.status===key)?null:key;saveDB();renderAll();}
+  function setStatus(no,key){const c=jobs[no-1].code,r=R(c);r.status=(r.status===key)?null:key;touch(c);saveDB();renderAll();}
 
   /* ---------- 탭 ---------- */
   let tab='list';
@@ -580,7 +581,7 @@
   function saveEdit(){
     const len=parseFloat(document.getElementById('eLen').value)||0, note=document.getElementById('eNote').value.trim();
     const j=eId?byCode(eId):null;
-    if(j){Object.assign(R(j.code),{len,note,cable:eCable,photos:ePhotos.slice()});}
+    if(j){Object.assign(R(j.code),{len,note,cable:eCable,photos:ePhotos.slice()});touch(j.code);}
     else{
       let x=eId?DB.extra.find(e=>e.id===eId):null;
       if(!x){ if(!eLL){closeEdit();return;} x={id:'x'+Date.now().toString(36),lat:eLL.lat,lng:eLL.lng,done:false}; DB.extra.push(x); sel=x.id; }
@@ -616,7 +617,7 @@
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));
     a.download='작업기록_'+ds+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
   }
-  function resetDay(){if(!confirm('오늘 상태·포설·사진·추가지점 기록을 모두 지울까요?'))return;DB.job={};DB.extra=[];sel=null;saveDB();renderAll();}
+  function resetDay(){if(!confirm('지금 목록의 상태·포설·사진과 추가지점 기록을 지울까요?'))return;jobs.forEach(j=>delete DB.job[j.code]);DB.extra=[];sel=null;saveDB();renderAll();}
 
   function renderAll(){renderList();renderMatSum();drawPins();renderDock();}
 
@@ -650,8 +651,13 @@
     jobs=(window.JOBS||[]).map(j=>Object.assign({},j));
     jobs.forEach(j=>{ j.road=null; j.lat=null; j.lng=null; j.short=j.jibun.replace(/^경기 \S+시 /,'');
       const m=(j.mat||'').match(/(\d+C)/); j.core=m?m[1]:''; });
-    const sig=jobs.map(j=>j.code).join(',');
-    if(DB.sig!==sig){ DB.sig=sig; DB.job={}; DB.extra=[]; saveDB(); }   // 새 지시서 → 기록 새로 시작
+    // 지시서 목록이 바뀌어도 기록은 지시서번호별로 계속 유지 (어제 하던 건 그대로 이어짐)
+    // 단, 지금 목록에 없고 60일 넘게 손 안 댄 기록은 정리 (저장공간 확보)
+    const now=Date.now(), cur=new Set(jobs.map(j=>j.code));
+    Object.keys(DB.job).forEach(c=>{const r=DB.job[c];
+      if(cur.has(c)){ if(!r.t) r.t=now; }
+      else if(!r.t||now-r.t>60*864e5) delete DB.job[c]; });
+    DB.sig=jobs.map(j=>j.code).join(','); saveDB();
     renderAll();
     if(KAKAO_KEY==='YOUR_KAKAO_JAVASCRIPT_KEY'){document.getElementById('setup').style.display='block';markManual();}
     else{

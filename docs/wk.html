@@ -328,10 +328,10 @@ const pct=(a,b)=>b?a/b*100:0;
 function ls(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(LSK+k)||'null');localStorage.setItem(LSK+k,JSON.stringify(v));}catch(e){return null;}}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1800);}
 function call(fn,...a){return new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](...a));}
-function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return&#96;${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}&#96;;}
 function copy(t){const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('📋 복사됨');}catch(e){}a.remove();};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('📋 복사됨')).catch(fb);else fb();}
 function openUrl(u){const a=document.createElement('a');a.href=u;a.target=u.startsWith('http')?'_blank':'_top';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();}
-function bar(d,u,t){return`<div class="prog-bar">${d?`<i class="d" style="width:${pct(d,t)}%"></i>`:''}${u?`<i class="u" style="width:${pct(u,t)}%"></i>`:''}</div>`;}
+function bar(d,u,t){return&#96;<div class="prog-bar">${d?&#96;<i class="d" style="width:${pct(d,t)}%"></i>&#96;:''}${u?&#96;<i class="u" style="width:${pct(u,t)}%"></i>&#96;:''}</div>&#96;;}
 
 /* 타입 ── */
 function tyClass(ty){const t=String(ty||'').toUpperCase();if(t.includes('LTE')&&t.includes('A'))return'lte-a';if(t.includes('LTE')&&t.includes('E'))return'lte-e';if(t.includes('LTE')&&t.includes('G'))return'lte-g';if(t.includes('SMGW'))return'smgw';if(t.includes('AMIGO'))return'amigo';return'etc';}
@@ -345,7 +345,7 @@ async function boot(){
 }
 async function showLogin(){
   $('vApp').classList.add('hide');$('vLogin').classList.remove('hide');
-  try{const ns=await call('loginNames');$('lName').innerHTML='<option value="">이름 선택</option>'+ns.map(n=>`<option>${esc(n)}</option>`).join('');}
+  try{const ns=await call('loginNames');$('lName').innerHTML='<option value="">이름 선택</option>'+ns.map(n=>&#96;<option>${esc(n)}</option>&#96;).join('');}
   catch(e){$('lErr').textContent='서버 연결 실패 — 새로고침 해주세요';}
 }
 async function doLogin(){
@@ -384,13 +384,13 @@ function go(v){
 
 /* ── 오프라인 대기열 ── */
 function queue(){return ls('q')||[];}
-function renderPend(){const n=queue().length;const el=$('hPend');el.classList.toggle('on',!!n);el.textContent=n?`⏳ 전송 대기 ${n}건 — 신호 잡히면 자동 전송`:'';el.style.display=n?'block':'none';}
+function renderPend(){const n=queue().length;const el=$('hPend');el.classList.toggle('on',!!n);el.textContent=n?&#96;⏳ 전송 대기 ${n}건 — 신호 잡히면 자동 전송&#96;:'';el.style.display=n?'block':'none';}
 let flushing=false;
 async function flush(){
   if(flushing||!U)return;
   const q=queue();if(!q.length)return renderPend();
   flushing=true;let sent=false;
-  try{const r=await call('update',U.name,U.pin,q);ls('q',queue().slice(q.length));sent=true;if(r.ok<q.length)toast(`⚠️ ${q.length-r.ok}건 저장 안 됨`);}catch(e){}
+  try{const r=await call('update',U.name,U.pin,q);ls('q',queue().slice(q.length));sent=true;if(r.ok<q.length)toast(&#96;⚠️ ${q.length-r.ok}건 저장 안 됨&#96;);}catch(e){}
   flushing=false;renderPend();if(sent&&queue().length)flush();
 }
 setInterval(flush,20000);window.addEventListener('online',flush);
@@ -405,8 +405,8 @@ function pState(p){return p[5]>=p[4]?'done':p[6]?'undone':'todo';}
 async function showMap(){
   S.view='map';
   window.scrollTo(0,0);
-  const sel=U.role==='admin'?`<select onchange="S.mapWho=this.value;loadMap()"><option value="*">전체 작업자</option>${U.workers.map(w=>`<option ${S.mapWho===w?'selected':''}>${esc(w)}</option>`).join('')}</select>`:'';
-  $('mainWrap').innerHTML=`<div id="mapWrap">
+  const sel=U.role==='admin'?&#96;<select onchange="S.mapWho=this.value;loadMap()"><option value="*">전체 작업자</option>${U.workers.map(w=>&#96;<option ${S.mapWho===w?'selected':''}>${esc(w)}</option>&#96;).join('')}</select>&#96;:'';
+  $('mainWrap').innerHTML=&#96;<div id="mapWrap">
     <div class="map-toolbar">
       ${sel}
       <select onchange="S.mapFlt=this.value;drawPts()">
@@ -429,7 +429,7 @@ async function showMap(){
       <button class="map-fab" style="bottom:68px" onclick="locate()">📍</button>
       <button class="map-fab" style="bottom:14px" onclick="fitPts()">⤢</button>
     </div>
-  </div>`;
+  </div>&#96;;
 
   const h=$('appHeader').getBoundingClientRect().bottom;
   document.documentElement.style.setProperty('--topH',h+'px');
@@ -471,10 +471,10 @@ async function loadMap(){
 function makeTypeIcon(ty,state,total,done,undone){
   const cls=tyClass(ty),lbl=tyLabel(ty);
   const left=(total||0)-(done||0)-(undone||0);
-  const cntHtml=state!=='done'&&left>0?`<div class="tm-cnt">${left}</div>`:'';
+  const cntHtml=state!=='done'&&left>0?&#96;<div class="tm-cnt">${left}</div>&#96;:'';
   const el=document.createElement('div');
   el.className='type-marker'+(state==='done'?' tm-done':state==='undone'?' tm-undone':'');
-  el.innerHTML=`<div class="tm-inner ${cls}">${esc(lbl)}</div>${cntHtml}`;
+  el.innerHTML=&#96;<div class="tm-inner ${cls}">${esc(lbl)}</div>${cntHtml}&#96;;
   const sz=lbl.length>5?[58,state!=='done'&&left>0?36:22]:[48,state!=='done'&&left>0?34:20];
   return L.divIcon({html:el.outerHTML,className:'',iconSize:[sz[0],sz[1]],iconAnchor:[sz[0]/2,14]});
 }
@@ -493,23 +493,23 @@ function drawPts(){
     L.marker([p[0],p[1]],{icon}).on('click',()=>popPt(i)).addTo(LAYER);
   });
   if(!$('mSum'))return;
-  $('mSum').innerHTML=`남은 주소 <b>${fmt(left)}</b> / ${fmt(MP.length)}곳`+(S.mapMissing?`<br>좌표없음 ${fmt(S.mapMissing)}대`:'');
+  $('mSum').innerHTML=&#96;남은 주소 <b>${fmt(left)}</b> / ${fmt(MP.length)}곳&#96;+(S.mapMissing?&#96;<br>좌표없음 ${fmt(S.mapMissing)}대&#96;:'');
   if(!MP.length&&S.mapMissing)$('mSum').innerHTML='좌표가 아직 없어요<br>시트 메뉴 → 좌표 채우기';
 }
 function fitPts(){if(!MAP||!MP.length)return;const b=L.latLngBounds(MP.map(p=>[p[0],p[1]]));MAP.fitBounds(b,{padding:[30,30],maxZoom:17});}
 function popPt(i){
   const p=MP[i],left=p[4]-p[5]-p[6];
   const ty=p[10]||'',cls=tyClass(ty),lbl=tyLabel(ty);
-  L.popup().setLatLng([p[0],p[1]]).setContent(`<div class="pop">
+  L.popup().setLatLng([p[0],p[1]]).setContent(&#96;<div class="pop">
     <b>${esc(p[2])}</b>
-    ${p[3]?`<div class="r">🛣️ ${esc(p[3])}</div>`:''}
+    ${p[3]?&#96;<div class="r">🛣️ ${esc(p[3])}</div>&#96;:''}
     <div style="margin-top:5px"><span class="badge ${cls}">${esc(lbl)}</span></div>
     <div class="c">계기 ${p[4]}대 · 완료 ${p[5]} · 미완료 ${p[6]} · <b style="color:${left>0?'var(--undone)':'var(--done)'}">남음 ${left}</b></div>
-    ${U.role==='admin'?`<div class="muted" style="margin-top:4px">👷 ${esc(p[9])}</div>`:''}
+    ${U.role==='admin'?&#96;<div class="muted" style="margin-top:4px">👷 ${esc(p[9])}</div>&#96;:''}
     <div class="pb">
       <button style="background:var(--kakao);color:#3a1d1d" onclick="navK(MP[${i}][3]||MP[${i}][2])">🗺️ 길안내</button>
       <button style="background:var(--brand);color:#fff" onclick="openFromMap(${i})">📋 계기 보기</button>
-    </div></div>`).openOn(MAP);
+    </div></div>&#96;).openOn(MAP);
 }
 async function openFromMap(i){
   const p=MP[i];S.who=p[9];
@@ -536,12 +536,12 @@ function locate(){
 /* ── 작업자 ── */
 function showWorkers(){
   S.view='work';
-  $('mainWrap').innerHTML=`<div class="card"><h2>작업자 선택</h2><p class="muted" style="margin:0">작업자 화면을 그대로 보고 대신 처리할 수 있어요</p></div>`
-    +U.workers.map((w,i)=>`<div class="worker-card" onclick="S.who=U.workers[${i}];loadAreas()">
+  $('mainWrap').innerHTML=&#96;<div class="card"><h2>작업자 선택</h2><p class="muted" style="margin:0">작업자 화면을 그대로 보고 대신 처리할 수 있어요</p></div>&#96;
+    +U.workers.map((w,i)=>&#96;<div class="worker-card" onclick="S.who=U.workers[${i}];loadAreas()">
       <div class="worker-avatar">👷</div>
       <div class="wi"><div class="wname">${esc(w)}</div></div>
       <span style="color:var(--mute);font-size:20px">›</span>
-    </div>`).join('');
+    </div>&#96;).join('');
 }
 
 /* ── 담당 동 목록 ── */
@@ -549,13 +549,13 @@ async function loadAreas(){
   S.view='areas';
   $('mainWrap').innerHTML='<div class="spin">불러오는 중…</div>';
   try{const r=await call('myAreas',U.name,U.pin,S.who);S.areas=r.areas;renderAreas();}
-  catch(e){$('mainWrap').innerHTML=`<div class="card">⚠️ ${esc(e.message||e)}</div>`;}
+  catch(e){$('mainWrap').innerHTML=&#96;<div class="card">⚠️ ${esc(e.message||e)}</div>&#96;;}
 }
 function renderAreas(){
   const t=S.areas.reduce((a,x)=>a+x.total,0),d=S.areas.reduce((a,x)=>a+x.done,0),u=S.areas.reduce((a,x)=>a+x.undone,0);
   $('mainWrap').innerHTML=
-    (U.role==='admin'?`<button class="back-btn" onclick="go('work')">‹ 작업자 목록</button>`:'')
-    +`<div class="hero-card">
+    (U.role==='admin'?&#96;<button class="back-btn" onclick="go('work')">‹ 작업자 목록</button>&#96;:'')
+    +&#96;<div class="hero-card">
       <div class="hero-name">${esc(S.who)} 님 담당</div>
       <div class="hero-pct">${pct(d,t).toFixed(1)}<small>%</small></div>
       ${bar(d,u,t)}
@@ -565,28 +565,28 @@ function renderAreas(){
       <input placeholder="계기번호·주소 검색" onkeydown="if(event.key==='Enter')doSearch(this.value)">
       <span class="ico">🔎</span>
     </div>
-    <div class="section-title">담당 지역 ${S.areas.length}개 동</div>`
-    +S.areas.map((a,i)=>`<div class="area-card" onclick="openArea(${i})">
+    <div class="section-title">담당 지역 ${S.areas.length}개 동</div>&#96;
+    +S.areas.map((a,i)=>&#96;<div class="area-card" onclick="openArea(${i})">
       <div class="ai">
         <div class="sigu">${esc(a.sigu)}</div>
         <div class="dong">${esc(a.dong)}</div>
         ${bar(a.done,a.undone,a.total)}
-        ${a.undone?`<div class="muted" style="margin-top:4px;font-size:12px">미완료 ${a.undone}대</div>`:''}
+        ${a.undone?&#96;<div class="muted" style="margin-top:4px;font-size:12px">미완료 ${a.undone}대</div>&#96;:''}
       </div>
       <div>
         <div class="pct-big">${pct(a.done,a.total).toFixed(0)}%</div>
         <div class="stats">${fmt(a.done)} / ${fmt(a.total)}</div>
       </div>
       <span class="chevron">›</span>
-    </div>`).join('')
-    +(S.areas.length?'':`<div class="card muted">배정된 작업이 없어요. 관리자에게 문의하세요.</div>`);
+    </div>&#96;).join('')
+    +(S.areas.length?'':&#96;<div class="card muted">배정된 작업이 없어요. 관리자에게 문의하세요.</div>&#96;);
 }
 async function doSearch(q){
   if(String(q).trim().length<2){toast('2글자 이상 입력해주세요');return;}
   $('mainWrap').innerHTML='<div class="spin">검색 중…</div>';
   try{
     S.rows=await call('search',U.name,U.pin,S.who,q);
-    S.area={sigu:'검색',dong:`"${q}"`,search:true};S.flt='all';S.q='';S.shown=60;renderRows();
+    S.area={sigu:'검색',dong:&#96;"${q}"&#96;,search:true};S.flt='all';S.q='';S.shown=60;renderRows();
   }catch(e){toast(e.message||'검색 실패');renderAreas();}
 }
 
@@ -596,7 +596,7 @@ async function openArea(i){
   $('mainWrap').innerHTML='<div class="spin">불러오는 중…</div>';
   window.scrollTo(0,0);
   try{S.rows=await call('dongRows',U.name,U.pin,S.who,S.area.sigu,S.area.dong,S.area.from,S.area.to);applyQueue();renderRows();}
-  catch(e){$('mainWrap').innerHTML=`<div class="card">⚠️ ${esc(e.message||e)}</div>`;}
+  catch(e){$('mainWrap').innerHTML=&#96;<div class="card">⚠️ ${esc(e.message||e)}</div>&#96;;}
 }
 function applyQueue(){const q=queue();q.forEach(it=>{const r=S.rows.find(x=>x.row===it.row&&x.m===it.m);if(r){r.st=it.st;r.rs=it.rs||'';}});}
 function groups(){
@@ -612,8 +612,8 @@ let GS=[];
 function renderRows(){
   const a=S.area,all=S.rows,G=groups();
   const n={todo:all.filter(r=>r.st==='미착수').length,undone:all.filter(r=>r.st==='미완료').length,done:all.filter(r=>r.st==='완료').length};
-  const fb=(k,l)=>`<button class="${S.flt===k?'on':''}" onclick="S.flt='${k}';S.shown=60;renderRows()">${l}</button>`;
-  let html=`<button class="back-btn" onclick="${a.search?'renderAreas()':'loadAreas()'}">‹ ${a.search?'검색':'담당 지역'}</button>
+  const fb=(k,l)=>&#96;<button class="${S.flt===k?'on':''}" onclick="S.flt='${k}';S.shown=60;renderRows()">${l}</button>&#96;;
+  let html=&#96;<button class="back-btn" onclick="${a.search?'renderAreas()':'loadAreas()'}">‹ ${a.search?'검색':'담당 지역'}</button>
     <div class="card">
       <div class="muted" style="margin-bottom:2px">${esc(a.sigu)}</div>
       <div class="prow"><span class="t">${esc(a.dong)}</span><span class="n">완료 ${fmt(n.done)} / ${fmt(all.length)}대</span></div>
@@ -623,53 +623,53 @@ function renderRows(){
       <input placeholder="주소·계기번호·전주 검색" value="${esc(S.q)}" oninput="S.q=this.value;S.shown=60;clearTimeout(window._qt);window._qt=setTimeout(renderRows,250)">
       <span class="ico">🔎</span>
     </div>
-    <div class="flt">${fb('todo',`남은것 ${fmt(n.todo)}`)}${fb('undone',`미완료 ${fmt(n.undone)}`)}${fb('done',`완료 ${fmt(n.done)}`)}${fb('all','전체')}</div>`;
+    <div class="flt">${fb('todo',&#96;남은것 ${fmt(n.todo)}&#96;)}${fb('undone',&#96;미완료 ${fmt(n.undone)}&#96;)}${fb('done',&#96;완료 ${fmt(n.done)}&#96;)}${fb('all','전체')}</div>&#96;;
   let lastRd=null;GS=G;
   G.slice(0,S.shown).forEach((g,gi)=>{
     const rd=g.rd||'도로명 없음';
-    if(rd!==lastRd){html+=`<div class="rdh">🛣️ ${esc(rd)}</div>`;lastRd=rd;}
+    if(rd!==lastRd){html+=&#96;<div class="rdh">🛣️ ${esc(rd)}</div>&#96;;lastRd=rd;}
     const r0=g.list[0],tc=tyClass(r0.ty),tl=tyLabel(r0.ty);
     const todo=g.list.filter(r=>r.st!=='완료').length;
-    html+=`<div class="addr-card">
+    html+=&#96;<div class="addr-card">
       <div class="addr-head">
         <div class="addr-jb">${esc(g.jb)}</div>
-        ${g.ra?`<div class="addr-ra"><span style="flex:1">${esc(g.ra)}</span><button class="btn-copy" onclick="copy(GS[${gi}].ra)">📋 복사</button></div>`:''}
+        ${g.ra?&#96;<div class="addr-ra"><span style="flex:1">${esc(g.ra)}</span><button class="btn-copy" onclick="copy(GS[${gi}].ra)">📋 복사</button></div>&#96;:''}
         <div class="addr-meta">
           <span class="badge ${tc}">${esc(tl)}</span>
           <span class="badge etc">${esc(r0.sh)} ${g.list.length}대</span>
-          ${r0.pn?`<span class="badge etc">전주 ${esc(r0.pn)}</span>`:''}
+          ${r0.pn?&#96;<span class="badge etc">전주 ${esc(r0.pn)}</span>&#96;:''}
         </div>
       </div>
       <div class="addr-nav">
         <button class="nav-k" onclick="navK(GS[${gi}].ra||GS[${gi}].jb)">🗺️ 카카오</button>
         <button class="nav-t" onclick="navT(GS[${gi}].ra||GS[${gi}].jb)">🚗 티맵</button>
-        <button class="nav-all" onclick="allDone(GS[${gi}].jb)">✅ 전체완료${todo?` (${todo})`:''}</button>
+        <button class="nav-all" onclick="allDone(GS[${gi}].jb)">✅ 전체완료${todo?&#96; (${todo})&#96;:''}</button>
       </div>
       ${g.list.map(r=>meterRow(r)).join('')}
-    </div>`;
+    </div>&#96;;
   });
-  if(G.length>S.shown)html+=`<button class="more" onclick="S.shown+=60;renderRows()">더 보기 (${fmt(G.length-S.shown)}곳 남음)</button>`;
-  if(!G.length)html+=`<div class="card muted" style="text-align:center;padding:24px">해당하는 계기가 없어요</div>`;
+  if(G.length>S.shown)html+=&#96;<button class="more" onclick="S.shown+=60;renderRows()">더 보기 (${fmt(G.length-S.shown)}곳 남음)</button>&#96;;
+  if(!G.length)html+=&#96;<div class="card muted" style="text-align:center;padding:24px">해당하는 계기가 없어요</div>&#96;;
   $('mainWrap').innerHTML=html;
 }
 function meterRow(r){
-  const m=String(r.m),hl=m.length>4?`${esc(m.slice(0,-4))}<b>${esc(m.slice(-4))}</b>`:esc(m);
+  const m=String(r.m),hl=m.length>4?&#96;${esc(m.slice(0,-4))}<b>${esc(m.slice(-4))}</b>&#96;:esc(m);
   const tc=tyClass(r.ty),tl=tyLabel(r.ty);
-  return`<div class="meter-row">
+  return&#96;<div class="meter-row">
     <div class="meter-info">
       <div class="meter-num">${hl}</div>
       <div class="meter-meta">
         <span class="badge ${tc}">${esc(tl)}</span>
-        <span class="muted" style="font-size:11px">${esc(r.ms)}${r.dcu?` · DCU ${esc(r.dcu)}`:''}</span>
-        ${r.nr==='보강'?`<span class="badge etc" style="color:var(--undone)">보강</span>`:''}
+        <span class="muted" style="font-size:11px">${esc(r.ms)}${r.dcu?&#96; · DCU ${esc(r.dcu)}&#96;:''}</span>
+        ${r.nr==='보강'?&#96;<span class="badge etc" style="color:var(--undone)">보강</span>&#96;:''}
       </div>
-      ${r.st==='미완료'?`<div class="meter-reason">⚠️ ${esc(r.rs||'사유없음')}${r.memo?' · '+esc(r.memo):''}</div>`:''}
+      ${r.st==='미완료'?&#96;<div class="meter-reason">⚠️ ${esc(r.rs||'사유없음')}${r.memo?' · '+esc(r.memo):''}</div>&#96;:''}
     </div>
     <div class="meter-btns">
       <button class="sb ${r.st==='완료'?'on-d':''}" onclick="setSt(${r.row},'완료')">완료</button>
       <button class="sb ${r.st==='미완료'?'on-u':''}" onclick="askUndone(${r.row})">미완료</button>
     </div>
-  </div>`;
+  </div>&#96;;
 }
 const findRow=row=>S.rows.find(r=>r.row===row);
 function navK(a){openUrl('https://map.kakao.com/link/search/'+encodeURIComponent(a));}
@@ -683,20 +683,20 @@ function setSt(row,st){
 function allDone(jb){
   const L=S.rows.filter(r=>r.jb===jb&&r.st!=='완료');
   if(!L.length){toast('이미 모두 완료');return;}
-  if(L.length>1&&!confirm(`${jb}\n계기 ${L.length}대를 모두 완료 처리할까요?`))return;
+  if(L.length>1&&!confirm(&#96;${jb}\n계기 ${L.length}대를 모두 완료 처리할까요?&#96;))return;
   L.forEach(r=>{r.st='완료';r.rs='';});renderRows();
   save(L.map(r=>({row:r.row,m:r.m,st:'완료',rs:'',memo:r.memo||''})));
-  toast(`✅ ${L.length}대 완료`);
+  toast(&#96;✅ ${L.length}대 완료&#96;);
 }
 function askUndone(row){
   const r=findRow(row);if(!r)return;
   if(r.st==='미완료'){setSt(row,'미완료');return;}
   let pick=r.rs||'';
   const m=document.createElement('div');m.className='modal';
-  const draw=()=>m.innerHTML=`<div class="sheet"><h3>미완료 사유 · 계기 ${esc(String(r.m).slice(-4))}</h3>
-    <div class="rgrid">${REASONS.map(x=>`<button class="${pick===x?'on':''}" data-r="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+  const draw=()=>m.innerHTML=&#96;<div class="sheet"><h3>미완료 사유 · 계기 ${esc(String(r.m).slice(-4))}</h3>
+    <div class="rgrid">${REASONS.map(x=>&#96;<button class="${pick===x?'on':''}" data-r="${esc(x)}">${esc(x)}</button>&#96;).join('')}</div>
     <input id="uMemo" placeholder="메모 (선택)" value="${esc(r.memo||'')}">
-    <div class="btns"><button class="b2" data-x="1">취소</button><button class="b1" data-ok="1">저장</button></div></div>`;
+    <div class="btns"><button class="b2" data-x="1">취소</button><button class="b1" data-ok="1">저장</button></div></div>&#96;;
   draw();
   m.onclick=e=>{
     const b=e.target.closest('button');
@@ -717,14 +717,14 @@ async function loadDash(){
   S.view='dash';
   $('mainWrap').innerHTML='<div class="spin">공정률 집계 중… (10초 정도)</div>';
   try{D=await call('summary',U.name,U.pin);renderDash();}
-  catch(e){$('mainWrap').innerHTML=`<div class="card">⚠️ ${esc(e.message||e)}</div>`;}
+  catch(e){$('mainWrap').innerHTML=&#96;<div class="card">⚠️ ${esc(e.message||e)}</div>&#96;;}
 }
 function renderDash(){
   const d=D,gp=d.actPct-d.planPct;
   const dd=Math.max(0,Math.ceil((new Date(d.end+'T00:00:00')-new Date(d.today+'T00:00:00'))/864e5));
   const late=d.forecast&&d.forecast>d.end;
   const dims=[['worker','작업자'],['office','사업소'],['type','계기타입'],['ms','통신'],['dcu','DCU차수']];
-  $('mainWrap').innerHTML=`
+  $('mainWrap').innerHTML=&#96;
   <div class="card">
     <h2>전체 공정률</h2>
     <div class="kpi-grid">
@@ -759,28 +759,28 @@ function renderDash(){
     <div class="chart" id="chart"></div>
     <details><summary>일별 완료 상세</summary>
       <table><tr><th>날짜</th><th>완료</th></tr>
-        ${d.last14.slice().reverse().map(x=>`<tr><td>${x[0]}</td><td>${fmt(x[1])}</td></tr>`).join('')||'<tr><td colspan=2>아직 실적 없음</td></tr>'}
+        ${d.last14.slice().reverse().map(x=>&#96;<tr><td>${x[0]}</td><td>${fmt(x[1])}</td></tr>&#96;).join('')||'<tr><td colspan=2>아직 실적 없음</td></tr>'}
       </table>
     </details>
   </div>
 
   <div class="card">
     <h2>구분별 진행</h2>
-    <div class="seg">${dims.map(([k,l])=>`<button class="${S.dimKey===k?'on':''}" onclick="S.dimKey='${k}';renderDash()">${l}</button>`).join('')}</div>
+    <div class="seg">${dims.map(([k,l])=>&#96;<button class="${S.dimKey===k?'on':''}" onclick="S.dimKey='${k}';renderDash()">${l}</button>&#96;).join('')}</div>
     <div class="lg"><span><i style="border-color:var(--done);border-top-width:8px"></i>완료</span><span><i style="border-color:var(--undone);border-top-width:8px"></i>미완료</span><span><i style="border-color:var(--todo);border-top-width:8px"></i>남음</span></div>
     ${dimBars(S.dimKey)}
   </div>
 
-  ${Object.keys(d.by.reason).length?`<div class="card"><h2>미완료 사유</h2>
-    <table>${Object.entries(d.by.reason).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v)}대</td></tr>`).join('')}</table>
-  </div>`:''}`;
+  ${Object.keys(d.by.reason).length?&#96;<div class="card"><h2>미완료 사유</h2>
+    <table>${Object.entries(d.by.reason).sort((a,b)=>b[1]-a[1]).map(([k,v])=>&#96;<tr><td>${esc(k)}</td><td>${fmt(v)}대</td></tr>&#96;).join('')}</table>
+  </div>&#96;:''}&#96;;
   drawChart();
 }
 function dimBars(k){
   const m=D.by[k];let keys=Object.keys(m);
   if(k==='worker'){const o=D.workerOrder;keys.sort((a,b)=>(o.indexOf(a)+1||99)-(o.indexOf(b)+1||99));}
   else keys.sort((a,b)=>m[b][0]-m[a][0]);
-  return keys.map(x=>{const[t,dn,un]=m[x];return`<div class="hb"><div class="prow"><span class="t">${esc(x)}</span><span class="n">${pct(dn,t).toFixed(1)}% · ${fmt(dn)}/${fmt(t)}${un?` · 미완료 ${fmt(un)}`:''}</span></div>${bar(dn,un,t)}</div>`;}).join('');
+  return keys.map(x=>{const[t,dn,un]=m[x];return&#96;<div class="hb"><div class="prow"><span class="t">${esc(x)}</span><span class="n">${pct(dn,t).toFixed(1)}% · ${fmt(dn)}/${fmt(t)}${un?&#96; · 미완료 ${fmt(un)}&#96;:''}</span></div>${bar(dn,un,t)}</div>&#96;;}).join('');
 }
 function drawChart(){
   const s=D.series,box=$('chart');
@@ -788,15 +788,15 @@ function drawChart(){
   const W=640,H=300,LL=40,R=12,T=12,B=30,iw=W-LL-R,ih=H-T-B,n=s.length;
   const X=i=>LL+(n<2?0:i/(n-1)*iw),Y=v=>T+ih-v/100*ih;
   const act=s.filter(p=>p.act!=null);let g='';
-  [0,25,50,75,100].forEach(v=>g+=`<line x1="${LL}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${LL-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--mute)">${v}%</text>`);
-  let lm='';s.forEach((p,i)=>{const mo=p.d.slice(0,7);if(mo!==lm){lm=mo;g+=`<text x="${X(i)}" y="${H-10}" text-anchor="${i===0?'start':'middle'}" font-size="11" fill="var(--mute)">${+p.d.slice(5,7)}월</text>`;}});
-  const path=(pts,f)=>pts.map((p,j)=>`${j?'L':'M'}${X(s.indexOf(p)).toFixed(1)},${Y(f(p)).toFixed(1)}`).join('');
-  g+=`<path d="${path(s,p=>p.plan)}" fill="none" stroke="var(--mute)" stroke-width="2" stroke-dasharray="5 4"/>`;
-  if(act.length){const lp=act[act.length-1],li=s.indexOf(lp);g+=`<path d="${path(act,p=>p.act)}" fill="none" stroke="var(--done)" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${X(li)}" cy="${Y(lp.act)}" r="5" fill="var(--done)" stroke="var(--surface)" stroke-width="2"/><text x="${Math.min(X(li)+8,W-R-40)}" y="${Y(lp.act)-8}" font-size="12" font-weight="800" fill="var(--ink)">${lp.act.toFixed(1)}%</text>`;}
-  g+=`<line id="cx" y1="${T}" y2="${T+ih}" stroke="var(--mute)" stroke-width="1" visibility="hidden"/><rect x="${LL}" y="${T}" width="${iw}" height="${ih}" fill="transparent" id="hit"/>`;
-  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="누적 공정률 계획 대비 실적">${g}</svg><div class="tip" id="tip"></div>`;
+  [0,25,50,75,100].forEach(v=>g+=&#96;<line x1="${LL}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${LL-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--mute)">${v}%</text>&#96;);
+  let lm='';s.forEach((p,i)=>{const mo=p.d.slice(0,7);if(mo!==lm){lm=mo;g+=&#96;<text x="${X(i)}" y="${H-10}" text-anchor="${i===0?'start':'middle'}" font-size="11" fill="var(--mute)">${+p.d.slice(5,7)}월</text>&#96;;}});
+  const path=(pts,f)=>pts.map((p,j)=>&#96;${j?'L':'M'}${X(s.indexOf(p)).toFixed(1)},${Y(f(p)).toFixed(1)}&#96;).join('');
+  g+=&#96;<path d="${path(s,p=>p.plan)}" fill="none" stroke="var(--mute)" stroke-width="2" stroke-dasharray="5 4"/>&#96;;
+  if(act.length){const lp=act[act.length-1],li=s.indexOf(lp);g+=&#96;<path d="${path(act,p=>p.act)}" fill="none" stroke="var(--done)" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${X(li)}" cy="${Y(lp.act)}" r="5" fill="var(--done)" stroke="var(--surface)" stroke-width="2"/><text x="${Math.min(X(li)+8,W-R-40)}" y="${Y(lp.act)-8}" font-size="12" font-weight="800" fill="var(--ink)">${lp.act.toFixed(1)}%</text>&#96;;}
+  g+=&#96;<line id="cx" y1="${T}" y2="${T+ih}" stroke="var(--mute)" stroke-width="1" visibility="hidden"/><rect x="${LL}" y="${T}" width="${iw}" height="${ih}" fill="transparent" id="hit"/>&#96;;
+  box.innerHTML=&#96;<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="누적 공정률 계획 대비 실적">${g}</svg><div class="tip" id="tip"></div>&#96;;
   const svg=box.querySelector('svg'),tip=$('tip'),cx=svg.querySelector('#cx');
-  const mv=e=>{const pt=e.touches?e.touches[0]:e,rc=svg.getBoundingClientRect();const x=(pt.clientX-rc.left)/rc.width*W;let i=Math.round((x-LL)/iw*(n-1));i=Math.max(0,Math.min(n-1,i));const p=s[i];cx.setAttribute('x1',X(i));cx.setAttribute('x2',X(i));cx.setAttribute('visibility','visible');tip.innerHTML=`<b>${p.d}</b><br>계획 ${p.plan.toFixed(1)}%${p.act!=null?`<br>실적 <b>${p.act.toFixed(1)}%</b> (당일 ${fmt(p.day)}대)`:''}`;tip.style.display='block';const left=X(i)/W*rc.width;tip.style.left=Math.max(0,Math.min(rc.width-tip.offsetWidth,left-tip.offsetWidth/2))+'px';tip.style.top='0px';};
+  const mv=e=>{const pt=e.touches?e.touches[0]:e,rc=svg.getBoundingClientRect();const x=(pt.clientX-rc.left)/rc.width*W;let i=Math.round((x-LL)/iw*(n-1));i=Math.max(0,Math.min(n-1,i));const p=s[i];cx.setAttribute('x1',X(i));cx.setAttribute('x2',X(i));cx.setAttribute('visibility','visible');tip.innerHTML=&#96;<b>${p.d}</b><br>계획 ${p.plan.toFixed(1)}%${p.act!=null?&#96;<br>실적 <b>${p.act.toFixed(1)}%</b> (당일 ${fmt(p.day)}대)&#96;:''}&#96;;tip.style.display='block';const left=X(i)/W*rc.width;tip.style.left=Math.max(0,Math.min(rc.width-tip.offsetWidth,left-tip.offsetWidth/2))+'px';tip.style.top='0px';};
   const hide=()=>{tip.style.display='none';cx.setAttribute('visibility','hidden');};
   svg.addEventListener('mousemove',mv);svg.addEventListener('touchstart',mv,{passive:true});svg.addEventListener('touchmove',mv,{passive:true});svg.addEventListener('mouseleave',hide);svg.addEventListener('touchend',()=>setTimeout(hide,1500));
 }
@@ -806,7 +806,7 @@ let matlStock=null;
 async function loadMatl(){
   $('mainWrap').innerHTML='<div class="spin">자재 현황 불러오는 중…</div>';
   try{const res=await call('getMatlStock');matlStock=Array.isArray(res)?res:[];renderMatl();}
-  catch(err){$('mainWrap').innerHTML=`<div class="card" style="color:var(--undone)">오류: ${esc(err.message)}</div>`;}
+  catch(err){$('mainWrap').innerHTML=&#96;<div class="card" style="color:var(--undone)">오류: ${esc(err.message)}</div>&#96;;}
 }
 function renderMatl(){
   if(!matlStock)return loadMatl();
@@ -815,15 +815,15 @@ function renderMatl(){
   const stockRows=matlStock.map(x=>{
     const p=x.recv>0?Math.round(x.dispatched/x.recv*100):0;
     const fc=p>90?'var(--undone)':p>70?'#f59e0b':'var(--done)';
-    return`<tr>
+    return&#96;<tr>
       <td>${esc(x.name)}</td>
       <td>${fmt(x.recv)}</td>
       <td>${fmt(x.dispatched)}</td>
       <td style="font-weight:800;color:${x.remain<100?'var(--undone)':'var(--done)'}">${fmt(x.remain)}</td>
       <td style="min-width:60px"><div class="stock-bar"><div class="fill" style="background:${fc};width:${p}%"></div></div></td>
-    </tr>`;
+    </tr>&#96;;
   }).join('');
-  $('mainWrap').innerHTML=`
+  $('mainWrap').innerHTML=&#96;
   <div class="card">
     <h2>자재 현황</h2>
     <div class="matl-kpi">
@@ -849,7 +849,7 @@ function renderMatl(){
     <h2>자재 분출 등록</h2>
     <div class="form-group">
       <label>자재 선택</label>
-      <select id="dispId">${matlStock.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} (잔량: ${fmt(x.remain)})</option>`).join('')}</select>
+      <select id="dispId">${matlStock.map(x=>&#96;<option value="${esc(x.id)}">${esc(x.name)} (잔량: ${fmt(x.remain)})</option>&#96;).join('')}</select>
     </div>
     <div class="form-group">
       <label>수량</label>
@@ -860,7 +860,7 @@ function renderMatl(){
       <input id="dispNote" type="text" placeholder="메모">
     </div>
     <button class="btn-primary" onclick="submitDispatch()">📤 분출 등록</button>
-  </div>`;
+  </div>&#96;;
 }
 async function submitDispatch(){
   const id=$('dispId').value,qty=parseInt($('dispQty').value),note=$('dispNote').value;

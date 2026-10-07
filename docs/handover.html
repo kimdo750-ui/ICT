@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>자재 인수인계</title>
+<style>
+:root{
+  --bg:#f5f6f8;--card:#fff;--line:#e4e6eb;--ink:#1a1b1e;--ink2:#6b7280;--mute:#9ca3af;
+  --navy:#1d4ed8;--red:#dc2626;--done:#16a34a;--done-bg:#dcfce7;
+  --undone:#ea580c;--undone-bg:#ffedd5;
+  --radius:14px;--radius-sm:8px;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+button{font-family:inherit;cursor:pointer}
+
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px;position:sticky;top:0;z-index:10}
+header h1{font-size:18px;font-weight:900;color:var(--navy)}
+header .sub{font-size:12px;color:var(--mute);margin-top:2px}
+
+main{padding:14px 16px 100px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+
+/* 작업자 선택 */
+.worker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.worker-btn{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px 4px;font-size:13px;font-weight:700;text-align:center}
+.worker-btn.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* 스캔 영역 */
+.scan-area{border:2px dashed var(--line);border-radius:12px;padding:20px;text-align:center;margin-bottom:10px;background:var(--bg)}
+.scan-area.active{border-color:var(--navy);background:#eff6ff}
+#scanResult{font-size:12px;color:var(--mute);margin-top:8px;word-break:break-all;min-height:18px}
+
+.btn-scan{width:100%;border:0;background:var(--navy);color:#fff;font-size:16px;font-weight:800;padding:14px;border-radius:13px;margin-bottom:8px}
+.btn-scan:active{opacity:.85}
+
+/* 필드 */
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:5px}
+.field input,.field select{width:100%;font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-family:inherit}
+.field input:focus,.field select:focus{outline:none;border-color:var(--navy)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* 모뎀 목록 */
+.item-list{margin-bottom:8px}
+.item-row{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:6px}
+.item-row .info{flex:1}
+.item-row .name{font-size:14px;font-weight:800}
+.item-row .detail{font-size:12px;color:var(--ink2);margin-top:2px}
+.item-row .del{border:0;background:none;color:var(--mute);font-size:18px;padding:0 4px}
+
+/* 부자재 */
+.sub-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.sub-row input{flex:1;font-size:14px;padding:9px 10px;border:1.5px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-family:inherit}
+.sub-row input:focus{outline:none;border-color:var(--navy)}
+.sub-row input.qty{width:80px;flex:none}
+.btn-add{border:1.5px dashed var(--line);background:none;color:var(--navy);font-size:13px;font-weight:700;padding:10px;border-radius:9px;width:100%}
+
+/* 하단 버튼 */
+.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
+.btn-reset{flex:none;border:1.5px solid var(--line);background:var(--bg);color:var(--ink2);font-size:14px;font-weight:700;padding:13px 16px;border-radius:12px}
+.btn-pdf{flex:1;border:0;background:var(--done);color:#fff;font-size:15px;font-weight:800;padding:14px;border-radius:12px}
+.btn-pdf:active{opacity:.85}
+
+/* 토스트 */
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:14px;font-weight:700;padding:10px 18px;border-radius:24px;opacity:0;transition:.2s;pointer-events:none;z-index:80;white-space:nowrap}
+#toast.on{opacity:1}
+
+/* 인쇄/PDF */
+@media print{
+  header,#scanBtn,.btn-add,.bottom,#toast,.del{display:none!important}
+  main{padding:0}
+  .card{border:1px solid #ccc;page-break-inside:avoid}
+  body{background:#fff}
+  .worker-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .worker-btn{display:none}
+  .worker-btn.on{display:block;border:1px solid #333;background:#fff;color:#000;font-size:13px;padding:4px 10px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ AMI 자재 인수인계</h1>
+  <div class="sub" id="hDate"></div>
+</header>
+
+<main>
+  <!-- 작업자 -->
+  <div class="card">
+    <h2>작업자 선택</h2>
+    <div class="worker-grid" id="workerGrid"></div>
+  </div>
+
+  <!-- 모뎀 스캔 -->
+  <div class="card">
+    <h2>모뎀 박스 스캔</h2>
+    <button class="btn-scan" id="scanBtn" onclick="startScan()">📷 카메라로 박스 스캔</button>
+    <div class="scan-area" id="scanArea">
+      <div style="font-size:28px">📦</div>
+      <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-top:6px">박스의 QR코드 또는 바코드를 스캔하세요</div>
+      <div id="scanResult"></div>
+    </div>
+    <!-- 수동 입력 fallback -->
+    <details style="margin-top:4px">
+      <summary style="font-size:13px;font-weight:700;color:var(--navy);cursor:pointer;padding:6px 0">✏️ 직접 입력</summary>
+      <div style="margin-top:8px">
+        <div class="field"><label>품명</label><input id="manName" placeholder="예: AE-Type 외장형 모뎀(E-Type)"></div>
+        <div class="row2">
+          <div class="field"><label>박스번호</label><input id="manBox" placeholder="박스번호"></div>
+          <div class="field"><label>수량 (EA)</label><input id="manQty" type="number" placeholder="30"></div>
+        </div>
+        <button onclick="addManual()" style="width:100%;border:0;background:var(--navy);color:#fff;font-size:14px;font-weight:800;padding:12px;border-radius:11px">➕ 추가</button>
+      </div>
+    </details>
+  </div>
+
+  <!-- 등록된 모뎀 박스 -->
+  <div class="card" id="modemCard" style="display:none">
+    <h2>등록된 모뎀 박스 <span id="modemCount" style="color:var(--navy)"></span></h2>
+    <div class="item-list" id="modemList"></div>
+    <div style="font-size:13px;font-weight:700;color:var(--done);background:var(--done-bg);border-radius:9px;padding:9px 12px" id="modemTotal"></div>
+  </div>
+
+  <!-- 부자재 -->
+  <div class="card">
+    <h2>부자재 (수동입력)</h2>
+    <div id="subList"></div>
+    <button class="btn-add" onclick="addSubRow()">＋ 부자재 추가</button>
+  </div>
+
+  <!-- 메모 -->
+  <div class="card">
+    <h2>특이사항</h2>
+    <textarea id="memo" style="width:100%;font-size:14px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-family:inherit;resize:none;min-height:72px" placeholder="특이사항 입력 (선택)"></textarea>
+  </div>
+</main>
+
+<div class="bottom">
+  <button class="btn-reset" onclick="resetAll()">🗑️ 초기화</button>
+  <button class="btn-pdf" onclick="savePDF()">📄 PDF 저장</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- hidden video for QR -->
+<video id="qvid" style="display:none" playsinline></video>
+<canvas id="qcvs" style="display:none"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+const WORKERS=[
+  {name:'김동일',role:'현장대리인'},
+  {name:'이영건',role:'작업원'},
+  {name:'김상식',role:'작업원'},
+  {name:'김현수',role:'작업원'},
+  {name:'김형기',role:'작업원'},
+  {name:'김성철',role:'작업원'},
+  {name:'심문희',role:'작업원'},
+  {name:'김민준',role:'작업원'},
+  {name:'진언경',role:'작업원'},
+  {name:'조성용',role:'작업원'},
+  {name:'권혁태',role:'작업원'},
+  {name:'정성현',role:'작업원'},
+  {name:'유병옥',role:'작업원'},
+  {name:'오진규',role:'작업원'},
+  {name:'김동숙',role:'작업원'}
+];
+
+let selectedWorker=null;
+let modemItems=[];
+let scanStream=null;
+let scanning=false;
+
+// 날짜
+const now=new Date();
+const pad=n=>String(n).padStart(2,'0');
+document.getElementById('hDate').textContent=
+  now.getFullYear()+'.'+pad(now.getMonth()+1)+'.'+pad(now.getDate())+
+  ' '+pad(now.getHours())+':'+pad(now.getMinutes())+' 작성';
+
+// 작업자 렌더
+function renderWorkers(){
+  const g=document.getElementById('workerGrid');
+  g.innerHTML=WORKERS.map((w,i)=>
+    '<button class="worker-btn'+(selectedWorker===w.name?' on':'')+
+    '" onclick="selectWorker(\''+w.name+'\')">'+w.name+'</button>'
+  ).join('');
+}
+renderWorkers();
+
+function selectWorker(name){
+  selectedWorker=name;
+  renderWorkers();
+  toast('👷 '+name+' 선택됨');
+}
+
+// QR 스캔
+function startScan(){
+  if(scanning){stopScan();return;}
+  const v=document.getElementById('qvid');
+  const area=document.getElementById('scanArea');
+  if(!navigator.mediaDevices){toast('카메라 지원 안 됨 — 직접 입력 사용');return;}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+    .then(stream=>{
+      scanStream=stream;scanning=true;
+      v.srcObject=stream;v.style.display='block';
+      v.style.cssText='width:100%;border-radius:10px;margin-bottom:8px;display:block';
+      area.insertBefore(v,area.firstChild);
+      v.play();
+      document.getElementById('scanBtn').textContent='⏹ 스캔 중지';
+      document.getElementById('scanResult').textContent='QR/바코드를 박스에 가까이 대세요…';
+      requestAnimationFrame(tick);
+    })
+    .catch(()=>toast('카메라 권한이 필요해요 — 직접 입력을 이용해주세요'));
+}
+function stopScan(){
+  if(scanStream)scanStream.getTracks().forEach(t=>t.stop());
+  scanStream=null;scanning=false;
+  const v=document.getElementById('qvid');
+  v.style.display='none';
+  document.getElementById('scanBtn').textContent='📷 카메라로 박스 스캔';
+  document.getElementById('scanResult').textContent='';
+}
+function tick(){
+  if(!scanning)return;
+  const v=document.getElementById('qvid');
+  const c=document.getElementById('qcvs');
+  if(v.readyState===v.HAVE_ENOUGH_DATA){
+    c.width=v.videoWidth;c.height=v.videoHeight;
+    const ctx=c.getContext('2d');ctx.drawImage(v,0,0);
+    const img=ctx.getImageData(0,0,c.width,c.height);
+    const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+    if(code){
+      stopScan();
+      parseAndAdd(code.data);
+      return;
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+// QR 데이터 파싱 — 한전 AMI 박스 형식 대응
+function parseAndAdd(raw){
+  document.getElementById('scanResult').textContent='스캔됨: '+raw;
+  // 파싱 시도
+  let name='',boxno='',qty=0;
+
+  // 줄바꿈/탭으로 분리
+  const lines=raw.split(/[\n\r\t]+/).map(s=>s.trim()).filter(Boolean);
+
+  // 숫자만 있는 긴 문자열 = 바코드 (박스번호로)
+  if(lines.length===1&&/^\d{8,}$/.test(lines[0])){
+    boxno=lines[0];
+    name='AE-Type 외장형 모뎀(E-Type)'; // 기본값
+    qty=30;
+    promptConfirm(raw,name,boxno,qty);
+    return;
+  }
+
+  // 여러 줄 QR 파싱
+  lines.forEach(l=>{
+    const kv=l.split(/[:：\s]+/);
+    const k=(kv[0]||'').trim();
+    const v=l.replace(/^[^:：\s]+[:：\s]+/,'').trim();
+    if(/품명|품목|명칭|제품명/i.test(k))name=v;
+    else if(/수량|QTY|EA/i.test(k)){const n=parseInt(v);if(n>0)qty=n;}
+    else if(/박스|번호|LOT|NO/i.test(k))boxno=v;
+    // 숫자 단독 라인 → 수량 후보
+    else if(/^\d{1,4}$/.test(l)&&!qty)qty=parseInt(l);
+    // 긴 숫자 → 박스번호 후보
+    else if(/^\d{6,}$/.test(l)&&!boxno)boxno=l;
+  });
+
+  // 못 찾으면 raw 그대로 박스번호
+  if(!boxno&&!name)boxno=raw.slice(0,30);
+  if(!name)name='AE-Type 외장형 모뎀(E-Type)';
+  if(!qty)qty=30;
+
+  promptConfirm(raw,name,boxno,qty);
+}
+
+function promptConfirm(raw,name,boxno,qty){
+  // 인라인 확인 팝업 대신 필드에 채워서 확인하게
+  document.getElementById('manName').value=name;
+  document.getElementById('manBox').value=boxno;
+  document.getElementById('manQty').value=qty;
+  // details 열기
+  document.querySelector('details').open=true;
+  toast('✅ 스캔 완료 — 내용 확인 후 추가 버튼 누르세요');
+  document.getElementById('scanResult').textContent='원본: '+raw;
+}
+
+function addManual(){
+  const name=document.getElementById('manName').value.trim();
+  const boxno=document.getElementById('manBox').value.trim();
+  const qty=parseInt(document.getElementById('manQty').value)||0;
+  if(!name){toast('품명을 입력하세요');return;}
+  modemItems.push({name,boxno,qty,ts:stamp()});
+  document.getElementById('manName').value='';
+  document.getElementById('manBox').value='';
+  document.getElementById('manQty').value='';
+  document.querySelector('details').open=false;
+  renderModem();
+  toast('📦 박스 추가됨 ('+qty+'EA)');
+}
+
+function renderModem(){
+  const list=document.getElementById('modemList');
+  const card=document.getElementById('modemCard');
+  if(!modemItems.length){card.style.display='none';return;}
+  card.style.display='';
+  const total=modemItems.reduce((s,x)=>s+x.qty,0);
+  document.getElementById('modemCount').textContent=modemItems.length+'박스';
+  document.getElementById('modemTotal').textContent=
+    '총 '+modemItems.length+'박스 · '+total+'EA';
+  list.innerHTML=modemItems.map((it,i)=>
+    '<div class="item-row">'+
+      '<div class="info">'+
+        '<div class="name">'+esc(it.name)+'</div>'+
+        '<div class="detail">'+(it.boxno?'박스번호: '+esc(it.boxno)+' · ':'')+it.qty+'EA</div>'+
+      '</div>'+
+      '<button class="del" onclick="delModem('+i+')">✕</button>'+
+    '</div>'
+  ).join('');
+}
+function delModem(i){modemItems.splice(i,1);renderModem();}
+
+// 부자재
+function addSubRow(){
+  const d=document.getElementById('subList');
+  const row=document.createElement('div');
+  row.className='sub-row';
+  row.innerHTML='<input placeholder="부자재명 (예: 방수캡)" oninput=""><input class="qty" type="number" placeholder="수량" min="1"><button style="border:0;background:none;color:var(--mute);font-size:18px" onclick="this.parentNode.remove()">✕</button>';
+  d.appendChild(row);
+}
+
+function getSubItems(){
+  const rows=document.querySelectorAll('#subList .sub-row');
+  const result=[];
+  rows.forEach(r=>{
+    const inputs=r.querySelectorAll('input');
+    const n=(inputs[0].value||'').trim();
+    const q=parseInt(inputs[1].value)||0;
+    if(n)result.push({name:n,qty:q});
+  });
+  return result;
+}
+
+// PDF
+function savePDF(){
+  if(!selectedWorker){toast('작업자를 먼저 선택해주세요');return;}
+  if(!modemItems.length&&!getSubItems().length){toast('자재를 하나 이상 추가해주세요');return;}
+  window.print();
+  toast('📄 PDF 저장 (인쇄 → PDF로 저장)');
+}
+
+function resetAll(){
+  if(!confirm('모두 초기화할까요?'))return;
+  selectedWorker=null;modemItems=[];
+  renderWorkers();renderModem();
+  document.getElementById('subList').innerHTML='';
+  document.getElementById('memo').value='';
+  toast('초기화됨');
+}
+
+function stamp(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function esc(s){return String(s==null?'':s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1800);}
+</script>
+</body>
+</html>

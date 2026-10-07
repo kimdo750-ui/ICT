@@ -209,7 +209,7 @@ h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-tran
 
 <div class="bottom">
   <button class="btn-reset" onclick="resetAll()">&#128465;&#65039; 초기화</button>
-  <button class="btn-pdf" onclick="savePDF()">&#128247; 이미지 저장</button>
+  <button class="btn-pdf" onclick="savePDF()">&#128172; 카카오톡 전송</button>
 </div>
 <div id="toast"></div>
 <canvas id="qcvs" style="display:none"></canvas>
@@ -479,7 +479,10 @@ function savePDF(){
   if(!modemItems.length){toast('박스를 하나 이상 추가해주세요');return;}
 
   // 인쇄용 HTML 생성
-  var w=selectedWorker;
+  var wname=selectedWorker;
+  // 작업자 직책 찾기
+  var wrole='';
+  WORKERS.forEach(function(x){if(x.name===wname)wrole=x.role||'';});
   var now=new Date();
   var ds=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일 '+
          String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
@@ -501,8 +504,8 @@ function savePDF(){
     '<div style="text-align:center;font-size:17px;font-weight:900;border-bottom:2px solid #1d4ed8;padding-bottom:8px;margin-bottom:12px;color:#1d4ed8">⚡ AMI 자재 인수인계서</div>'+
     '<table style="width:100%;border-collapse:collapse;margin-bottom:10px">'+
       '<tr><td style="padding:4px 6px;font-weight:700;width:70px">일시</td><td style="padding:4px 6px">'+ds+'</td></tr>'+
-      '<tr style="background:#f0f4ff"><td style="padding:4px 6px;font-weight:700">수령자</td><td style="padding:4px 6px;font-weight:900;font-size:15px">'+esc(w.name)+'</td></tr>'+
-      '<tr><td style="padding:4px 6px;font-weight:700">직책</td><td style="padding:4px 6px">'+esc(w.role)+'</td></tr>'+
+      '<tr style="background:#f0f4ff"><td style="padding:4px 6px;font-weight:700">수령자</td><td style="padding:4px 6px;font-weight:900;font-size:15px">'+esc(wname)+'</td></tr>'+
+      (wrole?'<tr><td style="padding:4px 6px;font-weight:700">직책</td><td style="padding:4px 6px">'+esc(wrole)+'</td></tr>':'')+
     '</table>'+
 
     '<div style="font-weight:800;margin:10px 0 6px;font-size:13px;color:#444">■ 모뎀 박스</div>'+
@@ -541,7 +544,7 @@ function savePDF(){
 
     '<div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px">'+
       '<div style="text-align:center;border-top:1px solid #333;padding-top:6px">'+
-        '<div style="font-size:15px;font-weight:900;margin-bottom:4px">'+esc(w)+'</div>'+
+        '<div style="font-size:15px;font-weight:900;margin-bottom:4px">'+esc(wname)+'</div>'+
         '인수자 서명'+
       '</div>'+
       '<div style="text-align:center;border-top:1px solid #333;padding-top:6px">'+
@@ -562,7 +565,7 @@ function savePDF(){
   html2canvas(pb,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false}).then(function(canvas){
     document.body.removeChild(tmp);
     var dataUrl=canvas.toDataURL('image/png');
-    var fname='인수인계_'+esc(w.name)+'_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.png';
+    var fname='인수인계_'+esc(wname)+'_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.png';
 
     // Web Share API (모바일 카카오톡 공유 등)
     if(navigator.share&&navigator.canShare){

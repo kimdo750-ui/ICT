@@ -396,7 +396,8 @@ function parseAndFill(raw, src){
 
   // 1) "BOX No: 004868" 형식 — 공백·콜론·OCR오류 모두 허용
   //    B0X / BOX / B 0X 등 + No/N0/NO + 숫자6자리
-  var bm = corrected.match(/B[0O]X\s*N[0O][\s:：]*(\d{4,6})/);
+  // "# BOX. No:004849" / "BOX No:004849" / "B0X N0:004849" 등 모두 허용
+  var bm = corrected.match(/B[0O]X[\s.]*N[0O][\s:：.#]*(\d{4,6})/);
   if(bm) boxno = bm[1];
 
   // 2) "박스번호: 004868" 한글 형식

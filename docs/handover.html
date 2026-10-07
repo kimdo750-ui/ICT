@@ -7,7 +7,7 @@
 <style>
 :root{
   --bg:#f5f6f8;--card:#fff;--line:#e4e6eb;--ink:#1a1b1e;--ink2:#6b7280;--mute:#9ca3af;
-  --navy:#1d4ed8;--red:#dc2626;--done:#16a34a;--done-bg:#dcfce7;
+  --navy:#1d4ed8;--red:#dc2626;--done:#16a34a;--done-bg:#dcfce7;--warn:#d97706;
   --radius:14px;
   color-scheme:light;
 }
@@ -109,13 +109,15 @@ h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-tran
   <div class="card">
     <h2>&#128230; 박스 등록</h2>
 
-    <!-- 카메라 input (사진 촬영) -->
+    <!-- 카메라 input -->
     <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(this)">
+
+    <!-- 스캔 버튼 (메인 액션) -->
     <button class="btn-photo" onclick="document.getElementById('photoInput').click()">
-      <span style="font-size:22px">&#128247;</span> 박스 사진 찍기
+      <span style="font-size:22px">&#128247;</span> 박스 스캔
     </button>
 
-    <!-- 사진 미리보기 + OCR 진행 -->
+    <!-- 사진 미리보기 + OCR 오버레이 -->
     <div id="previewWrap">
       <img id="previewImg" src="" alt="박스사진">
       <div id="ocrOverlay">
@@ -127,22 +129,47 @@ h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-tran
     <!-- OCR 원본 (접힘) -->
     <div id="ocrRaw"></div>
 
-    <!-- 필드 -->
-    <div class="field"><label>품명</label><input id="manName" placeholder="예: SMGW-C (LTE)"></div>
-    <div class="row2">
-      <div class="field"><label>박스번호</label><input id="manBox" placeholder="예: 004868" onblur="if(this.value)lookupMac(this.value)" onkeydown="if(event.key==='Enter'&&this.value)lookupMac(this.value)"></div>
-      <div class="field"><label>수량 (EA)</label><input id="manQty" type="number" placeholder="40"></div>
+    <!-- 인식 결과 카드 (스캔 후 표시) -->
+    <div id="scanResult" style="display:none;background:var(--done-bg);border:1.5px solid var(--done);border-radius:11px;padding:12px;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:var(--done);margin-bottom:6px">&#9989; 인식 결과</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <div>
+          <div style="font-size:18px;font-weight:900;font-family:'Courier New',monospace" id="scanBoxNo">—</div>
+          <div style="font-size:12px;color:var(--ink2)" id="scanModelName">—</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:900;color:var(--navy)" id="scanQty">—</div>
+          <div style="font-size:11px;color:var(--ink2)">EA</div>
+        </div>
+      </div>
+      <!-- 수정 가능 숨김 필드 -->
+      <input id="manName" type="hidden">
+      <input id="manBox" type="hidden">
+      <input id="manQty" type="hidden">
     </div>
+
+    <!-- 데이터 없을 때만 표시되는 수동 입력 -->
+    <div id="manualFallback" style="display:none">
+      <div style="font-size:12px;color:var(--warn);font-weight:700;margin-bottom:8px">&#9888;&#65039; 데이터 없음 — 수동 입력</div>
+      <div class="field"><label>품명</label><input id="manNameVis" placeholder="예: E타입 모뎀" oninput="document.getElementById('manName').value=this.value"></div>
+      <div class="row2">
+        <div class="field"><label>박스번호</label><input id="manBoxVis" placeholder="박스번호" oninput="document.getElementById('manBox').value=this.value" onblur="if(this.value)lookupMac(this.value)" onkeydown="if(event.key==='Enter'&&this.value)lookupMac(this.value)"></div>
+        <div class="field"><label>수량(EA)</label><input id="manQtyVis" type="number" placeholder="?" oninput="document.getElementById('manQty').value=this.value;if(this.value&&document.getElementById('manBox').value)document.getElementById('btnAddItem').style.display=''"></div>
+      </div>
+    </div>
+
     <!-- MAC 자동 조회 결과 패널 -->
     <div id="macPanel">
       <div class="mac-header">
-        <span>📋</span>
+        <span>&#128203;</span>
         <span id="macPanelTitle">박스 MAC 목록</span>
       </div>
       <div class="mac-body" id="macBody"></div>
-      <button class="mac-export-btn" onclick="copyMacList()">📋 MAC 목록 복사</button>
+      <button class="mac-export-btn" onclick="copyMacList()">&#128203; MAC 목록 복사</button>
     </div>
-    <button class="btn-add-item" onclick="addItem()">&#10133; 박스 추가</button>
+
+    <!-- 박스 추가 버튼 -->
+    <button class="btn-add-item" id="btnAddItem" onclick="addItem()" style="display:none">&#10133; 박스 추가</button>
   </div>
 
   <div class="card" id="modemCard" style="display:none">
@@ -348,32 +375,41 @@ function parseAndFill(raw, src){
     if(qm&&!qty) qty=parseInt(qm[1]);
   });
 
-  // 기본값
-  if(!name) name='AE-Type 외장형 모뎀(E-Type)';
-  if(!qty) qty=40;
-
-  document.getElementById('manName').value=name;
-  document.getElementById('manBox').value=boxno;
-  document.getElementById('manQty').value=qty;
-  toast('&#9989; '+src+' 인식 완료 — 확인 후 추가 버튼!');
-  // 박스번호가 인식되면 자동으로 MAC 조회
-  if(boxno) lookupMac(boxno);
+  // 박스번호가 인식되면 MAC 조회 → showMacPanel에서 나머지 처리
+  if(boxno){
+    document.getElementById('manBox').value=boxno;
+    lookupMac(boxno);
+  } else {
+    // 박스번호 없음 → 수동 입력 폴백
+    document.getElementById('manName').value=name||'';
+    document.getElementById('manQty').value=qty||'';
+    document.getElementById('scanResult').style.display='none';
+    document.getElementById('manualFallback').style.display='';
+    document.getElementById('btnAddItem').style.display='';
+    toast('&#9888;&#65039; 박스번호 인식 실패 — 수동 입력');
+  }
 }
 
 function addItem(){
   var name=document.getElementById('manName').value.trim();
   var boxno=document.getElementById('manBox').value.trim();
   var qty=parseInt(document.getElementById('manQty').value)||0;
-  if(!name){toast('품명을 입력하세요');return;}
+  if(!boxno){toast('박스번호가 없습니다');return;}
+  if(!name) name='모뎀';
+  if(!qty) qty=1;
   modemItems.push({name:name,boxno:boxno,qty:qty});
+  // UI 초기화
   document.getElementById('manName').value='';
   document.getElementById('manBox').value='';
   document.getElementById('manQty').value='';
   document.getElementById('previewWrap').style.display='none';
   document.getElementById('ocrRaw').style.display='none';
   document.getElementById('macPanel').style.display='none';
+  document.getElementById('scanResult').style.display='none';
+  document.getElementById('manualFallback').style.display='none';
+  document.getElementById('btnAddItem').style.display='none';
   renderModem();
-  toast('&#128230; 박스 추가됨 ('+qty+'EA)');
+  toast('&#128230; 박스 '+boxno+' 추가됨 ('+qty+'EA)');
 }
 
 function renderModem(){
@@ -566,23 +602,46 @@ function showMacPanel(boxno, macs){
   var panel = document.getElementById('macPanel');
   var body = document.getElementById('macBody');
   var title = document.getElementById('macPanelTitle');
-  
+  var scanResult = document.getElementById('scanResult');
+  var manualFallback = document.getElementById('manualFallback');
+  var btnAdd = document.getElementById('btnAddItem');
+
   if(!macs || !macs.length){
+    // 제조사 데이터 없음 (E타입 등) → 수동 입력 폴백
+    document.getElementById('manBox').value = boxno;
+    document.getElementById('manName').value = '';
+    document.getElementById('manQty').value = '';
+    // 수동폴백의 박스번호 표시
+    var visBox = document.getElementById('manBoxVis');
+    if(visBox) visBox.value = boxno;
+    scanResult.style.display = 'none';
+    manualFallback.style.display = '';
+    btnAdd.style.display = '';
+    // MAC 패널: 데이터 없음 표시
     title.textContent = '박스 '+boxno+' — MAC 데이터 없음';
-    body.innerHTML = '<div class="mac-empty">⚠️ 제조사 데이터에 없는 박스번호입니다<br><small>직접 수량을 확인해주세요</small></div>';
+    body.innerHTML = '<div class="mac-empty">&#9888;&#65039; 제조사 데이터에 없는 박스번호<br><small>E타입 모뎀은 수동으로 수량 입력해주세요</small></div>';
     panel.style.display = '';
+    toast('&#9888;&#65039; 박스 '+boxno+' — 데이터 없음, 수동 입력');
     return;
   }
-  
-  title.textContent = '박스 '+boxno+' · '+macs.length+'개 모뎀';
-  
-  // 수량 자동 입력
+
+  // 제조사 데이터 있음 → 스캔결과 카드 표시
+  var modelName = (macs[0] && macs[0].model) ? macs[0].model : '모뎀';
+  document.getElementById('manBox').value = boxno;
+  document.getElementById('manName').value = modelName;
   document.getElementById('manQty').value = macs.length;
-  // 품명 자동 입력 (모델명 기반)
-  if(macs[0] && macs[0].model && !document.getElementById('manName').value){
-    document.getElementById('manName').value = macs[0].model;
-  }
-  
+
+  // 스캔결과 카드 업데이트
+  document.getElementById('scanBoxNo').textContent = boxno;
+  document.getElementById('scanModelName').textContent = modelName;
+  document.getElementById('scanQty').textContent = macs.length + 'EA';
+
+  scanResult.style.display = '';
+  manualFallback.style.display = 'none';
+  btnAdd.style.display = '';
+
+  // MAC 패널 업데이트
+  title.textContent = '박스 '+boxno+' · '+macs.length+'개 모뎀';
   body.innerHTML = macs.map(function(m, i){
     return '<div class="mac-row">'+
       '<span class="seq">'+(i+1)+'</span>'+
@@ -590,9 +649,8 @@ function showMacPanel(boxno, macs){
       '<span class="model">'+esc(m.model||'')+'</span>'+
     '</div>';
   }).join('');
-  
   panel.style.display = '';
-  toast('✅ 박스 '+boxno+' — '+macs.length+'개 모뎀 MAC 조회됨');
+  toast('&#9989; 박스 '+boxno+' — '+macs.length+'EA 자동 인식!');
 }
 
 function copyMacList(){

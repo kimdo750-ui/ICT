@@ -589,39 +589,44 @@ async function loadMap() {
     $('mSum').textContent = '⚠️ ' + (e.message || e);
   }
 }
+var _iconCache = {};
 function makeTypeIcon(ty, state) {
-  const cls = tyClass(ty),
+  var key = ty + '|' + state;
+  if (_iconCache[key]) return _iconCache[key];
+  var cls = tyClass(ty),
     lbl = tyLabel(ty);
-  const el = document.createElement('div');
-  el.className = 'type-marker';
-  el.innerHTML = "<div class=\"tm-inner ".concat(cls, "\">").concat(esc(lbl), "</div>");
-  if (state === 'done') el.firstChild.classList.add('tm-done');
-  if (state === 'undone') el.classList.add('tm-undone');
-  const sz = lbl.length > 5 ? [58, 24] : [48, 22];
-  return L.divIcon({
-    html: el.outerHTML,
+  var inner = '<div class="tm-inner ' + cls + (state === 'done' ? ' tm-done' : '') + '">' + esc(lbl) + '</div>';
+  var html = state === 'undone' ? '<div class="type-marker tm-undone">' + inner + '</div>' : '<div class="type-marker">' + inner + '</div>';
+  var sz = lbl.length > 5 ? [58, 24] : [48, 22];
+  var ico = L.divIcon({
+    html: html,
     className: '',
     iconSize: sz,
     iconAnchor: [sz[0] / 2, sz[1] / 2]
   });
+  _iconCache[key] = ico;
+  return ico;
 }
 function drawPts() {
   if (!LAYER) return;
   LAYER.clearLayers();
-  const flt = S.mapFlt || 'left';
-  let shown = 0,
-    left = 0;
-  MP.forEach((p, i) => {
-    const st = pState(p);
+  var flt = S.mapFlt || 'left';
+  var left = 0;
+  var markers = [];
+  MP.forEach(function(p, i) {
+    var st = pState(p);
     if (st !== 'done') left++;
     if (flt === 'left' && st === 'done') return;
-    shown++;
-    const ty = p[10] || '';
-    const icon = makeTypeIcon(ty, st);
-    L.marker([p[0], p[1]], {
-      icon
-    }).on('click', () => popPt(i)).addTo(LAYER);
+    var ty = p[10] || '';
+    var icon = makeTypeIcon(ty, st);
+    var m = L.marker([p[0], p[1]], { icon: icon });
+    (function(idx) { m.on('click', function() { popPt(idx); }); })(i);
+    markers.push(m);
   });
+  if (markers.length) {
+    var tmp = L.layerGroup(markers);
+    tmp.eachLayer(function(m) { LAYER.addLayer(m); });
+  }
   $('mSum').innerHTML = "남은 주소 <b>".concat(fmt(left), "</b> / ").concat(fmt(MP.length), "곳") + (S.mapMissing ? "<br>좌표없음 ".concat(fmt(S.mapMissing), "대") : '');
   if (!MP.length && S.mapMissing) $('mSum').innerHTML = '좌표가 아직 없어요<br>시트 메뉴 → 좌표 채우기';
 }

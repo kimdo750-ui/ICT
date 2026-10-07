@@ -534,28 +534,35 @@ async function showMap() {
   S.view = 'map';
   window.scrollTo(0, 0);
   const sel = U.role === 'admin' ? "<select onchange=\"S.mapWho=this.value;loadMap()\"><option value=\"*\">전체 작업자</option>".concat(U.workers.map(w => "<option ".concat(S.mapWho === w ? 'selected' : '', ">").concat(esc(w), "</option>")).join(''), "</select>") : '';
-  $('main').innerHTML = "<div id=\"mapWrap\">\n    <div class=\"mbar\">\n      ".concat(sel, "\n      <select onchange=\"S.mapFlt=this.value;drawPts()\">\n        <option value=\"left\">남은 곳만</option>\n        <option value=\"all\" ").concat(S.mapFlt === 'all' ? 'selected' : '', ">전체</option>\n      </select>\n      <div class=\"toggle-tile\">\n        <button id=\"tileNorm\" class=\"").concat(S.tileMode === 'normal' ? 'on' : '', "\" onclick=\"setTile('normal')\">일반</button>\n        <button id=\"tileSat\" class=\"").concat(S.tileMode === 'satellite' ? 'on' : '', "\" onclick=\"setTile('satellite')\">위성</button>\n      </div>\n      <div class=\"mlg\">\n        <span><i style=\"background:").concat(PC.todo, "\"></i>남음</span>\n        <span><i style=\"background:").concat(PC.undone, "\"></i>미완료</span>\n        <span><i style=\"background:").concat(PC.done, "\"></i>완료</span>\n      </div>\n      <div class=\"sum\" id=\"mSum\"></div>\n    </div>\n    <div style=\"position:relative;flex:1;display:flex\">\n      <div id=\"map\"></div>\n      <button class=\"fab\" style=\"bottom:70px\" onclick=\"locate()\">📍</button>\n      <button class=\"fab\" style=\"bottom:14px\" onclick=\"fitPts()\">⤢</button>\n    </div>\n  </div>");
+  if (!window._mapInited) {
+    $('main').innerHTML = "<div id=\"mapWrap\">\n    <div class=\"mbar\">\n      ".concat(sel, "\n      <select onchange=\"S.mapFlt=this.value;drawPts()\">\n        <option value=\"left\">남은 곳만</option>\n        <option value=\"all\" ").concat(S.mapFlt === 'all' ? 'selected' : '', ">전체</option>\n      </select>\n      <div class=\"toggle-tile\">\n        <button id=\"tileNorm\" class=\"").concat(S.tileMode === 'normal' ? 'on' : '', "\" onclick=\"setTile('normal')\">일반</button>\n        <button id=\"tileSat\" class=\"").concat(S.tileMode === 'satellite' ? 'on' : '', "\" onclick=\"setTile('satellite')\">위성</button>\n      </div>\n      <div class=\"mlg\">\n        <span><i style=\"background:").concat(PC.todo, "\"></i>남음</span>\n        <span><i style=\"background:").concat(PC.undone, "\"></i>미완료</span>\n        <span><i style=\"background:").concat(PC.done, "\"></i>완료</span>\n      </div>\n      <div class=\"sum\" id=\"mSum\"></div>\n    </div>\n    <div style=\"position:relative;flex:1;display:flex\">\n      <div id=\"map\"></div>\n      <button class=\"fab\" style=\"bottom:70px\" onclick=\"locate()\">📍</button>\n      <button class=\"fab\" style=\"bottom:14px\" onclick=\"fitPts()\">⤢</button>\n    </div>\n  </div>");
+  }
   const h = document.querySelector('header').getBoundingClientRect().bottom;
   document.documentElement.style.setProperty('--topH', h + 'px');
   if (!window.L) {
     $('mSum').textContent = '지도 라이브러리 로드 실패';
     return;
   }
-  MAP = L.map('map', {
-    zoomControl: false,
-    attributionControl: false,
-    preferCanvas: false
-  }).setView([37.36, 126.88], 11);
-  NORM_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19
-  });
-  SAT_LAYER = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 18
-  });
-  if (S.tileMode === 'satellite') SAT_LAYER.addTo(MAP);else NORM_LAYER.addTo(MAP);
-  LAYER = L.layerGroup().addTo(MAP);
-  ME = null;
-  loadMap();
+  if (!window._mapInited) {
+    MAP = L.map('map', {
+      zoomControl: false,
+      attributionControl: false,
+      preferCanvas: true
+    }).setView([37.36, 126.88], 11);
+    NORM_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    });
+    SAT_LAYER = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 18
+    });
+    if (S.tileMode === 'satellite') SAT_LAYER.addTo(MAP); else NORM_LAYER.addTo(MAP);
+    LAYER = L.layerGroup().addTo(MAP);
+    ME = null;
+    window._mapInited = true;
+    loadMap();
+  } else {
+    MAP.invalidateSize();
+  }
 }
 function setTile(mode) {
   S.tileMode = mode;

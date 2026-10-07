@@ -1,199 +1,880 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<base target="_top">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>정보통신설비 점검표 작성 도구 — 김동일</title>
-<meta name="description" content="정보통신설비 유지보수·관리기준 별지 제2호·제3호 법정 서식을 현장에서 바로 작성하고 인쇄하는 도구. 34개 설비 점검항목 내장.">
-<meta property="og:title" content="정보통신설비 점검표 작성 도구">
-<meta property="og:description" content="별지 제2호·제3호 법정 서식 자동 생성 · 현장 모바일 입력 · 5년 보존 기록 관리">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<title>AMI 보강공사</title>
 <style>
+/* ── 디자인 토큰 ── */
 :root{
-  --ink:#12171B; --ink2:#2A343C; --paper:#F4F6F2; --card:#fff;
-  --line:#DDE1DA; --line2:#EDEFEA; --steel:#68737D;
-  --ok:#0E6B4C; --bad:#BF2A1B; --na:#8C959D;
+  --bg:#f0f2f5;--surface:#fff;--surface2:#f8f9fb;--line:#e2e5ea;
+  --ink:#17181c;--ink2:#5c6370;--mute:#9ea8b5;
+  --brand:#0052cc;--brand-dk:#003d99;--brand-lt:#e8f0fe;
+  --done:#1a7f3c;--done-bg:#e6f4ec;--done-fg:#1a7f3c;
+  --undone:#c94800;--undone-bg:#fff0e6;--undone-fg:#c94800;
+  --todo:#9ea8b5;--todo-bg:#eef0f3;
+  --road:#0077b6;--road-bg:#e0f0fa;
+  --kakao:#FEE500;--tmap:#1d4ed8;
+  --r:12px;--r-sm:8px;--r-lg:16px;
+  color-scheme:light;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
-  background:var(--paper);color:var(--ink);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased}
-.wrap{max-width:880px;margin:0 auto;padding:0 20px}
-a{color:inherit}
-
-/* 헤더 */
-.hero{background:var(--ink);color:#fff;padding:52px 0 42px}
-.eyebrow{font-size:11px;font-weight:700;letter-spacing:.3em;color:#8B98A2;margin-bottom:18px}
-h1{font-size:clamp(28px,6vw,44px);font-weight:900;letter-spacing:-.035em;line-height:1.14}
-.lead{color:#B7C1C8;margin-top:14px;font-size:clamp(14px,2.6vw,17px);font-weight:300;letter-spacing:-.01em}
-.chips{display:flex;gap:7px;margin-top:24px;flex-wrap:wrap}
-.chip{font-size:12px;font-weight:800;padding:6px 12px;border-radius:6px}
-.c1{background:var(--ok);color:#fff}.c2{background:var(--bad);color:#fff}.c3{background:#4A555E;color:#CFD6DA}
-.cta{display:flex;gap:10px;margin-top:30px;flex-wrap:wrap}
-.btn{display:inline-block;padding:15px 24px;border-radius:9px;text-decoration:none;
-  font-weight:800;font-size:15px;letter-spacing:-.01em;transition:transform .12s}
-.btn:active{transform:translateY(1px)}
-.btn-p{background:#fff;color:var(--ink)}
-.btn-s{background:transparent;color:#fff;border:1.5px solid #4A555E}
-.by{margin-top:30px;padding-top:18px;border-top:1px solid #333D45;font-size:13px;color:#93A0AA}
-.by b{color:#fff;font-weight:800;font-size:15px;letter-spacing:-.02em}
-
-/* 섹션 */
-section{padding:44px 0 0}
-h2{font-size:13px;font-weight:900;letter-spacing:.16em;padding-bottom:9px;
-  border-bottom:2px solid var(--ink);margin-bottom:20px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-h2 em{font-style:normal;font-weight:400;color:var(--steel);letter-spacing:0;font-size:12px;margin-left:auto}
-
-dl.rail{border-top:1px solid var(--line)}
-dl.rail>div{display:grid;grid-template-columns:96px 1fr;gap:14px;
-  padding:12px 0;border-bottom:1px solid var(--line2)}
-dl.rail dt{font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--steel);padding-top:2px}
-dl.rail dd{font-size:14.5px}
-dl.rail dd b{font-weight:800}
-
-.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.two h3{font-size:13px;font-weight:900;letter-spacing:.05em;margin-bottom:9px;
-  padding-left:10px;border-left:3px solid var(--bad)}
-.two .s h3{border-left-color:var(--ok)}
-.two p{font-size:14.5px;color:#252C33}
-.two p+p{margin-top:11px}
-
-table{width:100%;border-collapse:collapse;font-size:14.5px}
-th{text-align:left;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--steel);
-  padding:0 0 9px;border-bottom:1px solid var(--line)}
-td{padding:12px 0;border-bottom:1px solid var(--line2);vertical-align:top}
-td.k{width:170px;font-weight:800;padding-right:18px}
-
-.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.shot img{width:100%;display:block;border:1px solid var(--line);border-radius:8px;background:#fff}
-.cap{font-size:12.5px;color:var(--steel);margin-top:9px;line-height:1.5}
-.cap b{display:block;color:var(--ink);font-weight:800;font-size:13.5px;margin-bottom:2px}
-.sheet{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff}
-.sheet img{width:100%;display:block;border:1px solid var(--line2)}
-
-.ok-i{color:var(--ok);font-weight:900}
-.pend{color:var(--bad);font-weight:900}
-.tags{margin-top:14px}
-.tag{display:inline-block;font-size:12.5px;font-weight:700;background:#fff;
-  border:1px solid var(--line);border-radius:5px;padding:5px 10px;margin:0 5px 6px 0}
-
-footer{margin-top:52px;background:var(--ink);color:#8B98A2;padding:30px 0 40px;font-size:12.5px;line-height:1.7}
-footer b{color:#fff}
-.disc{border-top:1px solid #333D45;margin-top:16px;padding-top:14px;font-size:11.5px;color:#77848D}
-
-@media(max-width:640px){
-  .two{grid-template-columns:1fr;gap:20px}
-  .shots{grid-template-columns:1fr}
-  dl.rail>div{grid-template-columns:1fr;gap:3px}
-  td.k{width:120px;padding-right:12px}
-  .cta .btn{flex:1;text-align:center}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1015;--surface:#1a1c22;--surface2:#22252d;--line:#2c2f3a;
+  --ink:#eceef2;--ink2:#8a93a3;--mute:#505869;
+  --brand:#4d8eff;--brand-dk:#3370e0;--brand-lt:#0d1f40;
+  --done:#3dd67a;--done-bg:#0a2818;--done-fg:#3dd67a;
+  --undone:#ff7043;--undone-bg:#2a1000;--undone-fg:#ff7043;
+  --todo:#505869;--todo-bg:#1e2028;
+  --road:#38b6e8;--road-bg:#0b2d3d;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1015;--surface:#1a1c22;--surface2:#22252d;--line:#2c2f3a;
+  --ink:#eceef2;--ink2:#8a93a3;--mute:#505869;
+  --brand:#4d8eff;--brand-dk:#3370e0;--brand-lt:#0d1f40;
+  --done:#3dd67a;--done-bg:#0a2818;--done-fg:#3dd67a;
+  --undone:#ff7043;--undone-bg:#2a1000;--undone-fg:#ff7043;
+  --todo:#505869;--todo-bg:#1e2028;
+  --road:#38b6e8;--road-bg:#0b2d3d;
+  color-scheme:dark;
 }
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+a{color:var(--brand);text-decoration:none}
+.hide{display:none!important}
+
+/* ── 헤더 ── */
+#appHeader{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:8px;height:54px;padding:0 16px}
+.logo{font-size:17px;font-weight:900;color:var(--brand);letter-spacing:-.4px;flex:1;display:flex;align-items:center;gap:6px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none}
+.logo small{font-size:11px;font-weight:600;color:var(--mute);margin-left:2px;letter-spacing:.3px}
+.who-chip{font-size:12px;font-weight:700;color:var(--ink2);background:var(--surface2);border:1px solid var(--line);border-radius:20px;padding:5px 11px;letter-spacing:-.2px}
+.btn-out{border:1.5px solid var(--line);background:transparent;color:var(--ink2);border-radius:var(--r-sm);padding:6px 11px;font-size:12px;font-weight:700}
+.btn-out:active{opacity:.7}
+.pend-bar{font-size:12px;font-weight:700;color:#854d00;background:#fef9c3;padding:5px 16px;border-bottom:1px solid #fde68a;display:none}
+.pend-bar.on{display:block}
+.tabs{display:flex;gap:0;border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border:0;background:transparent;color:var(--ink2);font-size:12.5px;font-weight:700;padding:10px 14px;border-bottom:2.5px solid transparent;white-space:nowrap;letter-spacing:-.2px}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:800}
+
+/* ── 메인 영역 ── */
+#mainWrap{padding:14px 16px 88px;min-height:60vh}
+
+/* ── 카드 ── */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.card-flat{background:var(--surface2);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px}
+.muted{color:var(--mute);font-size:12.5px}
+.spin{text-align:center;color:var(--mute);padding:48px 0;font-weight:700;letter-spacing:.3px}
+.spin::before{content:'';display:block;width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+h2{font-size:11px;font-weight:800;color:var(--mute);margin:0 0 12px;text-transform:uppercase;letter-spacing:1px}
+.err{color:var(--undone);font-size:13px;font-weight:700;min-height:18px;margin-top:8px}
+.section-title{font-size:11.5px;font-weight:800;color:var(--mute);letter-spacing:.8px;text-transform:uppercase;margin:14px 0 6px}
+
+/* ── 로그인 ── */
+.login-wrap{max-width:400px;margin:0 auto;padding:40px 16px 40px}
+.login-brand{font-size:28px;font-weight:900;color:var(--brand);letter-spacing:-.5px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.login-brand .dot{width:10px;height:10px;border-radius:50%;background:var(--brand)}
+.login-sub{font-size:13px;color:var(--mute);margin-bottom:32px;letter-spacing:.2px}
+.login-wrap label{display:block;font-size:11.5px;font-weight:800;color:var(--ink2);margin-bottom:5px;margin-top:16px;letter-spacing:.5px;text-transform:uppercase}
+.login-wrap select,.login-wrap input{width:100%;font-size:16px;padding:13px 14px;border:1.5px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink);font-family:inherit;-webkit-appearance:none;transition:border-color .15s}
+.login-wrap select:focus,.login-wrap input:focus{outline:none;border-color:var(--brand)}
+.btn-primary{width:100%;border:0;background:var(--brand);color:#fff;font-size:16px;font-weight:800;padding:15px;border-radius:13px;margin-top:20px;letter-spacing:.2px;transition:opacity .15s}
+.btn-primary:active{opacity:.85}
+
+/* ── 진행바 ── */
+.prog-bar{display:flex;height:5px;border-radius:3px;overflow:hidden;background:var(--todo-bg);margin-top:8px}
+.prog-bar i{display:block;height:100%}
+.prog-bar .d{background:var(--done)}
+.prog-bar .u{background:var(--undone)}
+
+/* ── 타입 뱃지 ── */
+.badge{display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;border-radius:4px;padding:2px 7px;margin-right:3px;letter-spacing:.3px;white-space:nowrap}
+.badge.lte-a{background:#ede9fe;color:#5b21b6}
+.badge.lte-e{background:#fce7f3;color:#9d174d}
+.badge.lte-g{background:#dbeafe;color:#1d4ed8}
+.badge.smgw{background:#d1fae5;color:#065f46}
+.badge.amigo{background:#fef3c7;color:#92400e}
+.badge.etc{background:var(--todo-bg);color:var(--ink2)}
+
+/* ── 상태 칩 ── */
+.chip{display:inline-flex;align-items:center;font-size:11px;font-weight:800;border-radius:20px;padding:3px 9px}
+.chip.done{background:var(--done-bg);color:var(--done-fg)}
+.chip.undone{background:var(--undone-bg);color:var(--undone-fg)}
+.chip.todo{background:var(--todo-bg);color:var(--mute)}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kpi-grid.three{grid-template-columns:repeat(3,1fr)}
+.kpi-box{background:var(--surface2);border-radius:var(--r-sm);padding:12px 14px}
+.kpi-lbl{font-size:10.5px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.kpi-val{font-size:24px;font-weight:900;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.kpi-val small{font-size:13px;font-weight:700;color:var(--ink2)}
+.kpi-box.hi .kpi-val{color:var(--done)}
+.kpi-box.hi2 .kpi-val{color:var(--undone)}
+.gap-pill{font-size:13px;font-weight:700;padding:9px 14px;border-radius:var(--r-sm);margin-top:10px}
+.gap-pill.ahead{background:var(--done-bg);color:var(--done-fg)}
+.gap-pill.behind{background:var(--undone-bg);color:var(--undone-fg)}
+
+/* ── 세그먼트 ── */
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.seg button{border:1.5px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:700;letter-spacing:-.2px}
+.seg button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ── 진행 행 ── */
+.prow{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.prow .t{font-weight:800;font-size:15px}
+.prow .n{font-size:12.5px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.hb{margin:8px 0}
+.hb .prow .t{font-size:13.5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+td:first-child,th:first-child{text-align:left}
+th{font-weight:700;color:var(--ink2);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+details summary{font-weight:700;color:var(--ink2);font-size:13px;cursor:pointer;padding:6px 0}
+.lg{display:flex;gap:14px;font-size:12px;color:var(--ink2);font-weight:700;margin-bottom:8px;flex-wrap:wrap}
+.lg i{display:inline-block;width:16px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12.5px;box-shadow:0 4px 20px rgba(0,0,0,.13);white-space:nowrap;display:none;z-index:2}
+
+/* ── 목록 ── */
+.back-btn{border:0;background:none;color:var(--brand);font-size:14px;font-weight:700;padding:6px 0;display:inline-flex;align-items:center;gap:4px}
+.srch-wrap{position:relative;margin:10px 0}
+.srch-wrap input{width:100%;font-size:15px;padding:11px 40px 11px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-family:inherit;transition:border-color .15s}
+.srch-wrap input:focus{outline:none;border-color:var(--brand)}
+.srch-wrap .ico{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--mute);font-size:16px;pointer-events:none}
+.flt{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin:8px 0}
+.flt::-webkit-scrollbar{display:none}
+.flt button{flex:none;border:1.5px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:700;white-space:nowrap;transition:all .15s}
+.flt button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ── 동 목록 ── */
+.area-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.area-card:active{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-lt)}
+.area-card .ai{flex:1;min-width:0}
+.area-card .sigu{font-size:11px;font-weight:700;color:var(--mute);letter-spacing:.3px}
+.area-card .dong{font-size:16px;font-weight:800;margin-top:2px;letter-spacing:-.3px}
+.area-card .stats{font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap;text-align:right}
+.area-card .pct-big{font-size:20px;font-weight:900;color:var(--brand)}
+.area-card .chevron{color:var(--mute);font-size:20px}
+
+/* ── 내 진행 히어로 ── */
+.hero-card{text-align:center;padding:24px 16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px}
+.hero-pct{font-size:52px;font-weight:900;color:var(--brand);line-height:1;letter-spacing:-2px}
+.hero-pct small{font-size:20px;font-weight:700;letter-spacing:0}
+.hero-name{font-size:13px;color:var(--ink2);font-weight:700;margin-bottom:10px}
+.hero-sub{font-size:13px;font-weight:700;color:var(--ink2);margin-top:10px}
+
+/* ── 도로명 헤더 ── */
+.rdh{font-size:11.5px;font-weight:800;color:var(--mute);margin:14px 0 6px;display:flex;align-items:center;gap:8px;letter-spacing:.3px}
+.rdh::after{content:'';flex:1;height:1px;background:var(--line)}
+
+/* ── 주소 카드 ── */
+.addr-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.addr-head{padding:12px 14px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.addr-jb{font-size:16px;font-weight:900;letter-spacing:-.3px}
+.addr-ra{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;font-weight:700;color:var(--road)}
+.btn-copy{border:1.5px solid var(--road);background:transparent;color:var(--road);border-radius:5px;padding:3px 8px;font-size:11px;font-weight:800;flex:none}
+.addr-meta{display:flex;gap:5px;align-items:center;margin-top:7px;flex-wrap:wrap}
+.addr-nav{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:6px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+.addr-nav button{border:0;border-radius:var(--r-sm);padding:10px 0;font-size:13px;font-weight:800;letter-spacing:-.2px}
+.nav-k{background:var(--kakao);color:#3a1d1d}
+.nav-t{background:var(--tmap);color:#fff}
+.nav-all{background:var(--brand);color:#fff}
+
+/* ── 계기 행 ── */
+.meter-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.meter-row:last-child{border-bottom:0}
+.meter-info{flex:1;min-width:0}
+.meter-num{font-size:14px;font-weight:900;letter-spacing:.3px;font-variant-numeric:tabular-nums}
+.meter-num b{color:var(--brand)}
+.meter-meta{display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap}
+.meter-reason{font-size:11.5px;color:var(--undone-fg);font-weight:700;margin-top:3px;background:var(--undone-bg);border-radius:5px;padding:2px 7px;display:inline-block}
+.meter-btns{display:flex;gap:5px;flex:none}
+.sb{border:1.5px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;font-weight:800;white-space:nowrap;min-width:52px;text-align:center;transition:all .15s}
+.sb.on-d{background:var(--done);border-color:var(--done);color:#fff}
+.sb.on-u{background:var(--undone);border-color:var(--undone);color:#fff}
+
+/* ── 더보기 ── */
+.more{width:100%;border:1.5px dashed var(--line);background:none;color:var(--ink2);padding:14px;border-radius:var(--r);font-weight:800;margin-top:4px;font-size:13px}
+
+/* ── 사유 모달 ── */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.sheet{background:var(--surface);width:100%;max-width:540px;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet h3{margin:0 0 14px;font-size:17px;font-weight:900;letter-spacing:-.3px}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.rgrid button{border:1.5px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:10px;padding:12px 0;font-size:13px;font-weight:700}
+.rgrid button.on{background:var(--undone);border-color:var(--undone);color:#fff}
+.sheet input{width:100%;font-size:16px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin-top:10px;background:var(--surface2);color:var(--ink);font-family:inherit}
+.sheet input:focus{outline:none;border-color:var(--brand)}
+.btns{display:flex;gap:8px;margin-top:12px}
+.btns button{flex:1;border:0;border-radius:12px;padding:14px 0;font-size:15px;font-weight:800}
+.b2{background:var(--surface2);color:var(--ink2)}
+.b1{background:var(--undone);color:#fff}
+
+/* ── 지도 ── */
+body.mapmode #mainWrap{padding:0}
+#mapWrap{position:fixed;left:0;right:0;bottom:0;top:var(--topH,110px);display:flex;flex-direction:column}
+.map-toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.map-toolbar select{font-size:13px;padding:7px 10px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-weight:700}
+.tile-toggle{display:flex;border:1.5px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+.tile-toggle button{border:0;background:var(--surface);color:var(--ink2);font-size:12px;font-weight:700;padding:6px 11px}
+.tile-toggle button.on{background:var(--brand);color:#fff}
+.map-legend{display:flex;gap:10px;font-size:12px;font-weight:700;color:var(--ink2);flex-wrap:wrap}
+.map-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px;vertical-align:-1px;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 1.5px rgba(0,0,0,.25)}
+.map-sum{margin-left:auto;font-size:12px;font-weight:700;color:var(--ink2);text-align:right;line-height:1.5;white-space:nowrap}
+#map{flex:1;background:#dde2ec}
+.map-fab{position:absolute;right:12px;z-index:500;width:44px;height:44px;border-radius:50%;border:0;background:var(--surface);font-size:18px;box-shadow:0 2px 14px rgba(0,0,0,.22);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.pop b{font-size:15px;font-weight:900}
+.pop .r{color:var(--road);font-weight:700;margin-top:3px;font-size:13px}
+.pop .c{margin-top:5px;font-weight:700;font-size:13px}
+.pop .pb{display:flex;gap:6px;margin-top:10px}
+.pop .pb button{flex:1;border:0;border-radius:9px;padding:10px 6px;font-weight:800;font-size:13px}
+.leaflet-popup-content{margin:12px 14px;min-width:220px;font-family:inherit}
+
+/* ── 지도 타입 마커 ── */
+.type-marker{background:transparent;border:0}
+.tm-inner{font-size:10px;font-weight:900;border-radius:6px;padding:3px 6px;border:2px solid rgba(255,255,255,.9);box-shadow:0 2px 8px rgba(0,0,0,.28);white-space:nowrap;letter-spacing:.3px;position:relative}
+.tm-inner.lte-a{background:#5b21b6;color:#fff}
+.tm-inner.lte-e{background:#9d174d;color:#fff}
+.tm-inner.lte-g{background:#1d4ed8;color:#fff}
+.tm-inner.smgw{background:#065f46;color:#fff}
+.tm-inner.amigo{background:#92400e;color:#fff}
+.tm-cnt{font-size:9.5px;font-weight:900;text-align:center;margin-top:2px;color:var(--ink2)}
+.tm-done .tm-inner{opacity:.38}
+.tm-undone .tm-inner{box-shadow:0 2px 8px rgba(201,72,0,.55),0 0 0 2px #c94800}
+
+/* ── 작업자 카드 ── */
+.worker-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.worker-card:active{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-lt)}
+.worker-avatar{width:42px;height:42px;border-radius:50%;background:var(--brand-lt);color:var(--brand);font-size:19px;display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.worker-card .wi{flex:1}
+.worker-card .wname{font-size:15px;font-weight:800;letter-spacing:-.2px}
+.worker-card .wcount{font-size:12px;font-weight:700;color:var(--ink2);margin-top:2px}
+
+/* ── 자재 ── */
+.matl-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.matl-kpi .mk{text-align:center;border-radius:var(--r-sm);padding:13px 8px}
+.matl-kpi .mk .mv{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.matl-kpi .mk .ml{font-size:11px;font-weight:700;margin-top:3px}
+.stock-bar{background:var(--line);border-radius:3px;height:5px;overflow:hidden;margin-top:5px}
+.stock-bar .fill{height:5px;border-radius:3px;transition:width .3s}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:11.5px;font-weight:800;color:var(--ink2);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.form-group select,.form-group input{width:100%;font-size:15px;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-family:inherit}
+.form-group select:focus,.form-group input:focus{outline:none;border-color:var(--brand)}
+
+/* ── 토스트 ── */
+#toast{position:fixed;left:50%;bottom:max(28px,env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--surface);font-size:13.5px;font-weight:700;padding:11px 20px;border-radius:24px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:80;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<div class="hero"><div class="wrap">
-  <div class="eyebrow">실무 도구 · FIELD TOOL</div>
-  <h1>정보통신설비<br>점검표 작성 도구</h1>
-  <p class="lead">별지 제2호·제3호 법정 서식 자동 생성 · 현장 모바일 입력 · 5년 보존 기록 관리</p>
-  <div class="chips"><span class="chip c1">적합 ㅇ</span><span class="chip c2">부적합 X</span><span class="chip c3">해당없음 —</span></div>
-  <div class="cta">
-    <a class="btn btn-p" href="tool.html">도구 실행하기</a>
-    <a class="btn btn-s" href="portfolio.pdf">포트폴리오 PDF</a>
-    <a class="btn btn-s" href="sample.pdf">출력 서식 샘플</a>
+<!-- 로그인 -->
+<div id="vLogin" class="hide">
+  <div class="login-wrap">
+    <div class="login-brand"><div class="dot"></div>AMI 보강공사</div>
+    <div class="login-sub">2권역 모뎀 설치 공정관리 · 2026.10 ~ 2027.03</div>
+    <label>이름 선택</label>
+    <select id="lName"><option value="">불러오는 중…</option></select>
+    <label>PIN 번호</label>
+    <input id="lPin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN 4자리">
+    <button class="btn-primary" onclick="doLogin()">들어가기</button>
+    <div class="err" id="lErr"></div>
   </div>
-  <div class="by"><b>김동일</b> &nbsp;정보통신기술자 고급 (2026년 3월 취득) · 유지보수·관리자 인정교육 제17기 수강 예정</div>
-</div></div>
-
-<div class="wrap">
-
-<section>
-  <h2>제도 배경<em>정보통신공사업법 제37조의2·3 / 과기정통부 고시 「정보통신설비 유지보수·관리기준」</em></h2>
-  <dl class="rail">
-    <div><dt>대상</dt><dd>연면적 <b>5,000㎡ 이상</b> 건축물 — 3만㎡ 이상 <b>2025.7</b> / 1만~3만㎡ <b>2026.7</b> / 5천~1만㎡ <b>2027.7</b> 단계 시행</dd></div>
-    <div><dt>선임</dt><dd>관리주체는 인정교육을 이수한 기술계 정보통신기술자를 <b>유지보수·관리자로 선임</b>하고 지자체에 신고. 1인 <b>최대 5개 건축물</b> 중복 선임 가능</dd></div>
-    <div><dt>점검 주기</dt><dd>유지보수·관리 점검 <b>반기 1회 이상</b>(별지 제2호서식) / 성능점검 <b>연 1회 이상</b>(별지 제3호서식)</dd></div>
-    <div><dt>기록 의무</dt><dd>점검표 <b>5년 보존</b>, 시·군·구청장 요청 시 제출. 미선임·미점검 시 과태료 부과</dd></div>
-  </dl>
-</section>
-
-<section>
-  <h2>왜 만들었나</h2>
-  <div class="two">
-    <div>
-      <h3>문제</h3>
-      <p>점검대상은 <b>34개 설비</b>이고, 설비 하나당 외관·기능·안전 항목이 최대 20여 개다. 건물 한 곳을 점검하면 손으로 옮겨 적어야 할 행이 수백 개가 된다.</p>
-      <p>실무는 현장에서 종이에 적고 사무실에서 한글 서식에 다시 입력하는 <b>이중 작업</b>이다. 옮겨 적는 과정에서 부적합 사유가 빠지면, 그 자체가 서류 흠결로 남는다. 나중에 문제가 생기면 이 서류로 책임을 가린다.</p>
-    </div>
-    <div class="s">
-      <h3>해결</h3>
-      <p>건축물 정보와 설비만 고르면 <b>해설서 원문 점검항목이 자동으로 전개</b>된다. 전 항목의 기본값은 '적합'이고, 실제로 손대야 하는 것은 부적합뿐이다.</p>
-      <p>부적합을 선택한 순간에만 사유 입력창이 열리고, 사유가 비어 있으면 결과 화면에서 <b>경고로 잡아낸다</b>. 현장에서 휴대폰으로 끝내고 그대로 법정 서식으로 인쇄한다.</p>
-    </div>
-  </div>
-</section>
-
-<section>
-  <h2>주요 기능</h2>
-  <table>
-    <tr><th style="width:170px">기능</th><th>설명</th></tr>
-    <tr><td class="k">서식 자동 전개</td><td>34개 설비 × 유지보수·관리 / 성능점검 2종. 설비 선택만으로 해당 점검항목 전체 생성</td></tr>
-    <tr><td class="k">기본값 적합 · 예외 입력</td><td>전 항목 '적합' 선점. 부적합 선택 시에만 사유란 노출, 미기재 항목은 결과 화면에서 경고 표시</td></tr>
-    <tr><td class="k">부적합만 보기</td><td>점검 후 부적합 항목만 필터링. 설비 탭에 빨간 점으로 미해결 표시</td></tr>
-    <tr><td class="k">법정 서식 인쇄</td><td>별지 제2호(점검항목·점검내용·점검결과·비고) / 제3호(부적합사항·조치사항·현황사진란) 구조 그대로 출력</td></tr>
-    <tr><td class="k">기록 보존</td><td>localStorage 이력 저장 + JSON 내보내기 + 요약 텍스트 복사</td></tr>
-  </table>
-</section>
-
-<section>
-  <h2>화면</h2>
-  <div class="shots">
-    <div class="shot"><img src="img/setup.png" alt="점검 정보 입력 화면">
-      <div class="cap"><b>1. 점검 정보</b>점검 종류·건축물·점검자 입력 후 대상 설비 선택</div></div>
-    <div class="shot"><img src="img/check.png" alt="현장 점검 화면">
-      <div class="cap"><b>2. 현장 점검</b>3단 판정 스위치. 부적합 시 행 전체가 붉게 전환되고 사유란이 열림</div></div>
-    <div class="shot"><img src="img/result.png" alt="결과 화면">
-      <div class="cap"><b>3. 결과·서식</b>적합/부적합/해당없음 집계와 부적합 목록, 인쇄·내보내기</div></div>
-  </div>
-</section>
-
-<section>
-  <h2>산출물<em>별지 제2호서식 · 단자함 설비 유지보수·관리 점검표 (실제 인쇄 출력)</em></h2>
-  <div class="sheet"><img src="img/sheet.png" alt="별지 제2호서식 출력 결과"></div>
-  <p class="cap">설비 6종을 선택하면 6장이 연속 생성된다. 점검자·설치위치·설치업체·건축물 정보는 전 서식에 자동 반영되고, 설비별로 위치가 다르면 개별 수정할 수 있다. 부적합 항목의 비고란에는 현장에서 입력한 사유가 그대로 들어간다.</p>
-</section>
-
-<section>
-  <h2>데이터 출처 및 검증</h2>
-  <table>
-    <tr><th style="width:170px">구분</th><th>내용</th></tr>
-    <tr><td class="k">항목 원본</td><td>과학기술정보통신부 「정보통신설비 유지보수·관리 및 성능점검 업무 해설서」(2025년 8월) 제4장·제5장 — 34개 설비 전 항목</td></tr>
-    <tr><td class="k">서식 구조 대조</td><td><span class="ok-i">완료</span> — 점검결과 표기(ㅇ/X/—), 부적합 시 사유·조치 기재 의무, 여건에 따른 항목 추가·변경 허용 조항까지 별지 원본과 일치 확인</td></tr>
-    <tr><td class="k">유지보수·관리 점검표</td><td><span class="ok-i">34개 설비 전체</span> 해설서 원문 항목 반영</td></tr>
-    <tr><td class="k">성능점검표</td><td><span class="ok-i">19개 설비</span> 원문 반영 완료 / <span class="pend">15개 설비</span> 공통 점검 패턴 기반 초안 — 인정교육(2026.9.30~10.2) 배포 정식 서식과 대조 후 확정 예정</td></tr>
-  </table>
-  <p class="cap">해설서는 설명본이고 제출 원본은 고시 별지 서식이다. 두 문서의 차이 가능성을 전제로 데이터를 설비별·항목별로 분리해 두었기 때문에, 정식 서식 확인 후 다른 부분만 교체하면 된다.</p>
-</section>
-
-<section>
-  <h2>구현</h2>
-  <dl class="rail">
-    <div><dt>형태</dt><dd>단일 HTML 파일 · 외부 라이브러리 의존성 0 · 설치 불필요</dd></div>
-    <div><dt>동작 환경</dt><dd>오프라인 동작. 지하 통신실·기계실 등 통신이 끊기는 현장을 전제로 설계</dd></div>
-    <div><dt>구성</dt><dd>Vanilla JS 상태 관리 · localStorage 이력 · 인쇄 전용 CSS로 화면 UI와 법정 서식 분리 렌더링</dd></div>
-    <div><dt>화면</dt><dd>모바일 우선. 한 손 조작 기준의 터치 영역, 스티키 설비 탭, 하단 고정 진행률 바</dd></div>
-  </dl>
-  <div class="tags">
-    <span class="tag">Vanilla JS</span><span class="tag">HTML / CSS</span><span class="tag">Google Apps Script</span><span class="tag">Python</span><span class="tag">Excel VBA</span><span class="tag">GitHub Pages</span><span class="tag">인쇄 서식 자동화</span>
-  </div>
-</section>
-
 </div>
 
-<footer><div class="wrap">
-  <b>김동일</b> · 정보통신기술자 고급 (2026년 3월, 한국정보통신공사협회 경력수첩)<br>
-  선임 가능 범위 : 연면적 60,000㎡ 이하 건축물 · 동일 지역 내 최대 5개소 중복 선임<br>
-  정보통신설비 유지보수·관리자 인정교육 제17기 수강 예정 (2026.9.30~10.2, ICT폴리텍대학)
-  <div class="disc">본 도구는 과학기술정보통신부 해설서(2025.8)를 기준으로 제작한 개인 실무 도구이며, 제출용 정식 서식은 「정보통신설비 유지보수·관리기준」 고시 별지 원본을 따릅니다. 실제 현장 적용 시 관할 지자체가 별도 양식을 요구할 수 있습니다. 입력한 점검 데이터는 서버로 전송되지 않으며 사용자 기기 안에만 저장됩니다.</div>
-</div></footer>
+<!-- 앱 -->
+<div id="vApp" class="hide">
+  <div id="appHeader">
+    <div class="hbar">
+      <div class="logo"><div class="logo-dot"></div>AMI<small>보강공사</small></div>
+      <span class="who-chip" id="hWho"></span>
+      <button class="btn-out" onclick="logout()">나가기</button>
+    </div>
+    <div class="pend-bar" id="hPend"></div>
+    <div class="tabs" id="hTabs">
+      <button id="tDash" class="on" onclick="go('dash')">📊 공정률</button>
+      <button id="tWork" onclick="go('work')">👷 작업자</button>
+      <button id="tList" onclick="go('areas')">📋 내 작업</button>
+      <button id="tMap" onclick="go('map')">🗺️ 지도</button>
+      <button id="tMatl" onclick="go('matl')">📦 자재</button>
+    </div>
+  </div>
+  <div id="mainWrap"></div>
+</div>
 
+<div id="toast"></div>
+
+<script>
+/* ── 기본 ── */
+const REASONS=['부재(고객없음)','고객거부','설치공간없음','통신불량','계기교체필요','출입불가','기타'];
+const LSK='ami_boost_v2';
+let U=null;
+let S={view:'',who:'',areas:[],area:null,rows:[],flt:'todo',q:'',shown:60,dimKey:'worker',mapWho:'*',mapFlt:'left',tileMode:'normal'};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'})[c]);
+const fmt=n=>Number(n||0).toLocaleString('ko-KR');
+const pct=(a,b)=>b?a/b*100:0;
+function ls(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(LSK+k)||'null');localStorage.setItem(LSK+k,JSON.stringify(v));}catch(e){return null;}}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),1800);}
+function call(fn,...a){return new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](...a));}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return&#96;${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}&#96;;}
+function copy(t){const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('📋 복사됨');}catch(e){}a.remove();};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('📋 복사됨')).catch(fb);else fb();}
+function openUrl(u){const a=document.createElement('a');a.href=u;a.target=u.startsWith('http')?'_blank':'_top';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();}
+function bar(d,u,t){return&#96;<div class="prog-bar">${d?&#96;<i class="d" style="width:${pct(d,t)}%"></i>&#96;:''}${u?&#96;<i class="u" style="width:${pct(u,t)}%"></i>&#96;:''}</div>&#96;;}
+
+/* 타입 ── */
+function tyClass(ty){const t=String(ty||'').toUpperCase();if(t.includes('LTE')&&t.includes('A'))return'lte-a';if(t.includes('LTE')&&t.includes('E'))return'lte-e';if(t.includes('LTE')&&t.includes('G'))return'lte-g';if(t.includes('SMGW'))return'smgw';if(t.includes('AMIGO'))return'amigo';return'etc';}
+function tyLabel(ty){const t=String(ty||'').toUpperCase();if(t.includes('LTE')&&t.includes('A'))return'LTE(A)';if(t.includes('LTE')&&t.includes('E'))return'LTE(E)';if(t.includes('LTE')&&t.includes('G'))return'LTE(G)';if(t.includes('SMGW'))return'SMGW';if(t.includes('AMIGO'))return'AMIGO';return ty||'';}
+
+/* ── 로그인 ── */
+async function boot(){
+  const saved=ls('user');
+  if(saved){try{U=Object.assign(await call('login',saved.name,saved.pin),{pin:saved.pin});return enter();}catch(e){}}
+  showLogin();
+}
+async function showLogin(){
+  $('vApp').classList.add('hide');$('vLogin').classList.remove('hide');
+  try{const ns=await call('loginNames');$('lName').innerHTML='<option value="">이름 선택</option>'+ns.map(n=>&#96;<option>${esc(n)}</option>&#96;).join('');}
+  catch(e){$('lErr').textContent='서버 연결 실패 — 새로고침 해주세요';}
+}
+async function doLogin(){
+  const n=$('lName').value,p=$('lPin').value.trim();
+  $('lErr').textContent='';
+  if(!n||!p){$('lErr').textContent='이름과 PIN을 입력해주세요';return;}
+  try{U=Object.assign(await call('login',n,p),{pin:p});ls('user',{name:n,pin:p});enter();}
+  catch(e){$('lErr').textContent=e&&e.message||'로그인 실패';}
+}
+function logout(){if(!confirm('로그아웃할까요?'))return;ls('user',null);U=null;location.reload();}
+function enter(){
+  $('vLogin').classList.add('hide');$('vApp').classList.remove('hide');
+  $('hWho').textContent=U.name+(U.role==='admin'?' 관리자':'');
+  const ad=U.role==='admin';
+  $('tDash').classList.toggle('hide',!ad);$('tWork').classList.toggle('hide',!ad);
+  $('tList').classList.toggle('hide',ad);$('tMatl').classList.remove('hide');
+  if(ad){S.mapWho='*';go('dash');}else{S.who=U.name;S.mapWho=U.name;go('areas');}
+  flush();renderPend();
+}
+
+/* ── 탭 전환 (버그 수정) ── */
+const ALL_TABS=['tDash','tWork','tList','tMap','tMatl'];
+function setActiveTab(tabId){ALL_TABS.forEach(id=>$(id).classList.toggle('on',id===tabId));}
+function go(v){
+  document.body.classList.remove('mapmode');
+  if(v==='dash'){setActiveTab('tDash');return loadDash();}
+  if(v==='work'){setActiveTab('tWork');return showWorkers();}
+  if(v==='areas'){setActiveTab(U.role==='admin'?'tWork':'tList');return loadAreas();}
+  if(v==='map'){
+    document.body.classList.add('mapmode');
+    setActiveTab('tMap');
+    return showMap();
+  }
+  if(v==='matl'){setActiveTab('tMatl');return loadMatl();}
+}
+
+/* ── 오프라인 대기열 ── */
+function queue(){return ls('q')||[];}
+function renderPend(){const n=queue().length;const el=$('hPend');el.classList.toggle('on',!!n);el.textContent=n?&#96;⏳ 전송 대기 ${n}건 — 신호 잡히면 자동 전송&#96;:'';el.style.display=n?'block':'none';}
+let flushing=false;
+async function flush(){
+  if(flushing||!U)return;
+  const q=queue();if(!q.length)return renderPend();
+  flushing=true;let sent=false;
+  try{const r=await call('update',U.name,U.pin,q);ls('q',queue().slice(q.length));sent=true;if(r.ok<q.length)toast(&#96;⚠️ ${q.length-r.ok}건 저장 안 됨&#96;);}catch(e){}
+  flushing=false;renderPend();if(sent&&queue().length)flush();
+}
+setInterval(flush,20000);window.addEventListener('online',flush);
+async function save(items){items.forEach(it=>it.at=stamp());ls('q',queue().concat(items));renderPend();await flush();}
+
+/* ── 지도 ── */
+const PC={todo:'#dc2626',undone:'#c94800',done:'#1a7f3c'};
+let MAP=null,NORM_LAYER=null,SAT_LAYER=null,LAYER=null,MP=[],ME=null;
+let _mapInited=false;
+function pState(p){return p[5]>=p[4]?'done':p[6]?'undone':'todo';}
+
+async function showMap(){
+  S.view='map';
+  window.scrollTo(0,0);
+  const sel=U.role==='admin'?&#96;<select onchange="S.mapWho=this.value;loadMap()"><option value="*">전체 작업자</option>${U.workers.map(w=>&#96;<option ${S.mapWho===w?'selected':''}>${esc(w)}</option>&#96;).join('')}</select>&#96;:'';
+  $('mainWrap').innerHTML=&#96;<div id="mapWrap">
+    <div class="map-toolbar">
+      ${sel}
+      <select onchange="S.mapFlt=this.value;drawPts()">
+        <option value="left">남은 곳만</option>
+        <option value="all" ${S.mapFlt==='all'?'selected':''}>전체</option>
+      </select>
+      <div class="tile-toggle">
+        <button id="tileNorm" class="${S.tileMode==='normal'?'on':''}" onclick="setTile('normal')">일반</button>
+        <button id="tileSat" class="${S.tileMode==='satellite'?'on':''}" onclick="setTile('satellite')">위성</button>
+      </div>
+      <div class="map-legend">
+        <span><i style="background:${PC.todo}"></i>남음</span>
+        <span><i style="background:${PC.undone}"></i>미완료</span>
+        <span><i style="background:${PC.done}"></i>완료</span>
+      </div>
+      <div class="map-sum" id="mSum"></div>
+    </div>
+    <div style="position:relative;flex:1;display:flex">
+      <div id="map"></div>
+      <button class="map-fab" style="bottom:68px" onclick="locate()">📍</button>
+      <button class="map-fab" style="bottom:14px" onclick="fitPts()">⤢</button>
+    </div>
+  </div>&#96;;
+
+  const h=$('appHeader').getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty('--topH',h+'px');
+
+  if(!window.L){$('mSum').textContent='지도 라이브러리 로드 실패';return;}
+
+  /* 기존 MAP 인스턴스 재활용 — 매번 새로 만들지 않음 */
+  if(!_mapInited||!MAP){
+    MAP=L.map('map',{zoomControl:false,attributionControl:false,preferCanvas:true}).setView([37.36,126.88],11);
+    NORM_LAYER=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+    SAT_LAYER=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18});
+    if(S.tileMode==='satellite')SAT_LAYER.addTo(MAP);else NORM_LAYER.addTo(MAP);
+    LAYER=L.layerGroup().addTo(MAP);
+    ME=null;
+    _mapInited=true;
+  } else {
+    /* DOM이 다시 만들어졌으므로 컨테이너 연결 갱신 */
+    MAP._container=document.getElementById('map');
+    MAP.invalidateSize();
+  }
+  loadMap();
+}
+function setTile(mode){
+  S.tileMode=mode;$('tileNorm').classList.toggle('on',mode==='normal');$('tileSat').classList.toggle('on',mode==='satellite');
+  if(!MAP)return;
+  if(mode==='satellite'){MAP.removeLayer(NORM_LAYER);SAT_LAYER.addTo(MAP);}
+  else{MAP.removeLayer(SAT_LAYER);NORM_LAYER.addTo(MAP);}
+}
+async function loadMap(){
+  if(!$('mSum'))return;
+  $('mSum').textContent='불러오는 중…';
+  try{
+    const r=await call('mapPoints',U.name,U.pin,S.mapWho||'*');
+    MP=r.pts;S.mapMissing=r.missing;
+    drawPts();fitPts();
+  }catch(e){if($('mSum'))$('mSum').textContent='⚠️'+(e.message||e);}
+}
+/* 남은 수 표시 개선 */
+function makeTypeIcon(ty,state,total,done,undone){
+  const cls=tyClass(ty),lbl=tyLabel(ty);
+  const left=(total||0)-(done||0)-(undone||0);
+  const cntHtml=state!=='done'&&left>0?&#96;<div class="tm-cnt">${left}</div>&#96;:'';
+  const el=document.createElement('div');
+  el.className='type-marker'+(state==='done'?' tm-done':state==='undone'?' tm-undone':'');
+  el.innerHTML=&#96;<div class="tm-inner ${cls}">${esc(lbl)}</div>${cntHtml}&#96;;
+  const sz=lbl.length>5?[58,state!=='done'&&left>0?36:22]:[48,state!=='done'&&left>0?34:20];
+  return L.divIcon({html:el.outerHTML,className:'',iconSize:[sz[0],sz[1]],iconAnchor:[sz[0]/2,14]});
+}
+function drawPts(){
+  if(!LAYER)return;
+  LAYER.clearLayers();
+  const flt=S.mapFlt||'left';
+  let shown=0,left=0;
+  MP.forEach((p,i)=>{
+    const st=pState(p);
+    if(st!=='done')left++;
+    if(flt==='left'&&st==='done')return;
+    shown++;
+    const ty=p[10]||'';
+    const icon=makeTypeIcon(ty,st,p[4],p[5],p[6]);
+    L.marker([p[0],p[1]],{icon}).on('click',()=>popPt(i)).addTo(LAYER);
+  });
+  if(!$('mSum'))return;
+  $('mSum').innerHTML=&#96;남은 주소 <b>${fmt(left)}</b> / ${fmt(MP.length)}곳&#96;+(S.mapMissing?&#96;<br>좌표없음 ${fmt(S.mapMissing)}대&#96;:'');
+  if(!MP.length&&S.mapMissing)$('mSum').innerHTML='좌표가 아직 없어요<br>시트 메뉴 → 좌표 채우기';
+}
+function fitPts(){if(!MAP||!MP.length)return;const b=L.latLngBounds(MP.map(p=>[p[0],p[1]]));MAP.fitBounds(b,{padding:[30,30],maxZoom:17});}
+function popPt(i){
+  const p=MP[i],left=p[4]-p[5]-p[6];
+  const ty=p[10]||'',cls=tyClass(ty),lbl=tyLabel(ty);
+  L.popup().setLatLng([p[0],p[1]]).setContent(&#96;<div class="pop">
+    <b>${esc(p[2])}</b>
+    ${p[3]?&#96;<div class="r">🛣️ ${esc(p[3])}</div>&#96;:''}
+    <div style="margin-top:5px"><span class="badge ${cls}">${esc(lbl)}</span></div>
+    <div class="c">계기 ${p[4]}대 · 완료 ${p[5]} · 미완료 ${p[6]} · <b style="color:${left>0?'var(--undone)':'var(--done)'}">남음 ${left}</b></div>
+    ${U.role==='admin'?&#96;<div class="muted" style="margin-top:4px">👷 ${esc(p[9])}</div>&#96;:''}
+    <div class="pb">
+      <button style="background:var(--kakao);color:#3a1d1d" onclick="navK(MP[${i}][3]||MP[${i}][2])">🗺️ 길안내</button>
+      <button style="background:var(--brand);color:#fff" onclick="openFromMap(${i})">📋 계기 보기</button>
+    </div></div>&#96;).openOn(MAP);
+}
+async function openFromMap(i){
+  const p=MP[i];S.who=p[9];
+  document.body.classList.remove('mapmode');
+  setActiveTab(U.role==='admin'?'tWork':'tList');
+  $('mainWrap').innerHTML='<div class="spin">불러오는 중…</div>';
+  try{
+    const r=await call('myAreas',U.name,U.pin,S.who);S.areas=r.areas;
+    const k=S.areas.findIndex(a=>a.sigu===p[7]&&a.dong===p[8]);
+    if(k<0){renderAreas();return;}
+    await openArea(k);S.q=p[2];S.flt='all';renderRows();
+  }catch(e){toast(e.message||'실패');}
+}
+function locate(){
+  if(!navigator.geolocation){toast('위치 기능 없음');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const ll=[pos.coords.latitude,pos.coords.longitude];
+    if(ME)MAP.removeLayer(ME);
+    ME=L.circleMarker(ll,{radius:9,color:'#fff',weight:3,fillColor:'#1a7f3c',fillOpacity:1}).addTo(MAP);
+    MAP.setView(ll,16);
+  },()=>toast('위치 권한이 막혀 있어요'),{enableHighAccuracy:true,timeout:8000});
+}
+
+/* ── 작업자 ── */
+function showWorkers(){
+  S.view='work';
+  $('mainWrap').innerHTML=&#96;<div class="card"><h2>작업자 선택</h2><p class="muted" style="margin:0">작업자 화면을 그대로 보고 대신 처리할 수 있어요</p></div>&#96;
+    +U.workers.map((w,i)=>&#96;<div class="worker-card" onclick="S.who=U.workers[${i}];loadAreas()">
+      <div class="worker-avatar">👷</div>
+      <div class="wi"><div class="wname">${esc(w)}</div></div>
+      <span style="color:var(--mute);font-size:20px">›</span>
+    </div>&#96;).join('');
+}
+
+/* ── 담당 동 목록 ── */
+async function loadAreas(){
+  S.view='areas';
+  $('mainWrap').innerHTML='<div class="spin">불러오는 중…</div>';
+  try{const r=await call('myAreas',U.name,U.pin,S.who);S.areas=r.areas;renderAreas();}
+  catch(e){$('mainWrap').innerHTML=&#96;<div class="card">⚠️ ${esc(e.message||e)}</div>&#96;;}
+}
+function renderAreas(){
+  const t=S.areas.reduce((a,x)=>a+x.total,0),d=S.areas.reduce((a,x)=>a+x.done,0),u=S.areas.reduce((a,x)=>a+x.undone,0);
+  $('mainWrap').innerHTML=
+    (U.role==='admin'?&#96;<button class="back-btn" onclick="go('work')">‹ 작업자 목록</button>&#96;:'')
+    +&#96;<div class="hero-card">
+      <div class="hero-name">${esc(S.who)} 님 담당</div>
+      <div class="hero-pct">${pct(d,t).toFixed(1)}<small>%</small></div>
+      ${bar(d,u,t)}
+      <div class="hero-sub">완료 ${fmt(d)} · 미완료 ${fmt(u)} · 남은 ${fmt(t-d-u)}대</div>
+    </div>
+    <div class="srch-wrap">
+      <input placeholder="계기번호·주소 검색" onkeydown="if(event.key==='Enter')doSearch(this.value)">
+      <span class="ico">🔎</span>
+    </div>
+    <div class="section-title">담당 지역 ${S.areas.length}개 동</div>&#96;
+    +S.areas.map((a,i)=>&#96;<div class="area-card" onclick="openArea(${i})">
+      <div class="ai">
+        <div class="sigu">${esc(a.sigu)}</div>
+        <div class="dong">${esc(a.dong)}</div>
+        ${bar(a.done,a.undone,a.total)}
+        ${a.undone?&#96;<div class="muted" style="margin-top:4px;font-size:12px">미완료 ${a.undone}대</div>&#96;:''}
+      </div>
+      <div>
+        <div class="pct-big">${pct(a.done,a.total).toFixed(0)}%</div>
+        <div class="stats">${fmt(a.done)} / ${fmt(a.total)}</div>
+      </div>
+      <span class="chevron">›</span>
+    </div>&#96;).join('')
+    +(S.areas.length?'':&#96;<div class="card muted">배정된 작업이 없어요. 관리자에게 문의하세요.</div>&#96;);
+}
+async function doSearch(q){
+  if(String(q).trim().length<2){toast('2글자 이상 입력해주세요');return;}
+  $('mainWrap').innerHTML='<div class="spin">검색 중…</div>';
+  try{
+    S.rows=await call('search',U.name,U.pin,S.who,q);
+    S.area={sigu:'검색',dong:&#96;"${q}"&#96;,search:true};S.flt='all';S.q='';S.shown=60;renderRows();
+  }catch(e){toast(e.message||'검색 실패');renderAreas();}
+}
+
+/* ── 동 상세 ── */
+async function openArea(i){
+  S.area=S.areas[i];S.flt='todo';S.q='';S.shown=60;S.view='rows';
+  $('mainWrap').innerHTML='<div class="spin">불러오는 중…</div>';
+  window.scrollTo(0,0);
+  try{S.rows=await call('dongRows',U.name,U.pin,S.who,S.area.sigu,S.area.dong,S.area.from,S.area.to);applyQueue();renderRows();}
+  catch(e){$('mainWrap').innerHTML=&#96;<div class="card">⚠️ ${esc(e.message||e)}</div>&#96;;}
+}
+function applyQueue(){const q=queue();q.forEach(it=>{const r=S.rows.find(x=>x.row===it.row&&x.m===it.m);if(r){r.st=it.st;r.rs=it.rs||'';}});}
+function groups(){
+  const q=S.q.replace(/\s+/g,''),G=[],idx={};
+  S.rows.forEach(r=>{
+    if(S.flt==='todo'&&r.st!=='미착수')return;if(S.flt==='undone'&&r.st!=='미완료')return;if(S.flt==='done'&&r.st!=='완료')return;
+    if(q&&(r.jb+r.ra+r.m+r.pn).replace(/\s+/g,'').indexOf(q)<0)return;
+    let g=idx[r.jb];if(!g){g=idx[r.jb]={jb:r.jb,ra:r.ra,rd:r.rd,list:[]};G.push(g);}g.list.push(r);
+  });
+  return G;
+}
+let GS=[];
+function renderRows(){
+  const a=S.area,all=S.rows,G=groups();
+  const n={todo:all.filter(r=>r.st==='미착수').length,undone:all.filter(r=>r.st==='미완료').length,done:all.filter(r=>r.st==='완료').length};
+  const fb=(k,l)=>&#96;<button class="${S.flt===k?'on':''}" onclick="S.flt='${k}';S.shown=60;renderRows()">${l}</button>&#96;;
+  let html=&#96;<button class="back-btn" onclick="${a.search?'renderAreas()':'loadAreas()'}">‹ ${a.search?'검색':'담당 지역'}</button>
+    <div class="card">
+      <div class="muted" style="margin-bottom:2px">${esc(a.sigu)}</div>
+      <div class="prow"><span class="t">${esc(a.dong)}</span><span class="n">완료 ${fmt(n.done)} / ${fmt(all.length)}대</span></div>
+      ${bar(n.done,n.undone,all.length)}
+    </div>
+    <div class="srch-wrap">
+      <input placeholder="주소·계기번호·전주 검색" value="${esc(S.q)}" oninput="S.q=this.value;S.shown=60;clearTimeout(window._qt);window._qt=setTimeout(renderRows,250)">
+      <span class="ico">🔎</span>
+    </div>
+    <div class="flt">${fb('todo',&#96;남은것 ${fmt(n.todo)}&#96;)}${fb('undone',&#96;미완료 ${fmt(n.undone)}&#96;)}${fb('done',&#96;완료 ${fmt(n.done)}&#96;)}${fb('all','전체')}</div>&#96;;
+  let lastRd=null;GS=G;
+  G.slice(0,S.shown).forEach((g,gi)=>{
+    const rd=g.rd||'도로명 없음';
+    if(rd!==lastRd){html+=&#96;<div class="rdh">🛣️ ${esc(rd)}</div>&#96;;lastRd=rd;}
+    const r0=g.list[0],tc=tyClass(r0.ty),tl=tyLabel(r0.ty);
+    const todo=g.list.filter(r=>r.st!=='완료').length;
+    html+=&#96;<div class="addr-card">
+      <div class="addr-head">
+        <div class="addr-jb">${esc(g.jb)}</div>
+        ${g.ra?&#96;<div class="addr-ra"><span style="flex:1">${esc(g.ra)}</span><button class="btn-copy" onclick="copy(GS[${gi}].ra)">📋 복사</button></div>&#96;:''}
+        <div class="addr-meta">
+          <span class="badge ${tc}">${esc(tl)}</span>
+          <span class="badge etc">${esc(r0.sh)} ${g.list.length}대</span>
+          ${r0.pn?&#96;<span class="badge etc">전주 ${esc(r0.pn)}</span>&#96;:''}
+        </div>
+      </div>
+      <div class="addr-nav">
+        <button class="nav-k" onclick="navK(GS[${gi}].ra||GS[${gi}].jb)">🗺️ 카카오</button>
+        <button class="nav-t" onclick="navT(GS[${gi}].ra||GS[${gi}].jb)">🚗 티맵</button>
+        <button class="nav-all" onclick="allDone(GS[${gi}].jb)">✅ 전체완료${todo?&#96; (${todo})&#96;:''}</button>
+      </div>
+      ${g.list.map(r=>meterRow(r)).join('')}
+    </div>&#96;;
+  });
+  if(G.length>S.shown)html+=&#96;<button class="more" onclick="S.shown+=60;renderRows()">더 보기 (${fmt(G.length-S.shown)}곳 남음)</button>&#96;;
+  if(!G.length)html+=&#96;<div class="card muted" style="text-align:center;padding:24px">해당하는 계기가 없어요</div>&#96;;
+  $('mainWrap').innerHTML=html;
+}
+function meterRow(r){
+  const m=String(r.m),hl=m.length>4?&#96;${esc(m.slice(0,-4))}<b>${esc(m.slice(-4))}</b>&#96;:esc(m);
+  const tc=tyClass(r.ty),tl=tyLabel(r.ty);
+  return&#96;<div class="meter-row">
+    <div class="meter-info">
+      <div class="meter-num">${hl}</div>
+      <div class="meter-meta">
+        <span class="badge ${tc}">${esc(tl)}</span>
+        <span class="muted" style="font-size:11px">${esc(r.ms)}${r.dcu?&#96; · DCU ${esc(r.dcu)}&#96;:''}</span>
+        ${r.nr==='보강'?&#96;<span class="badge etc" style="color:var(--undone)">보강</span>&#96;:''}
+      </div>
+      ${r.st==='미완료'?&#96;<div class="meter-reason">⚠️ ${esc(r.rs||'사유없음')}${r.memo?' · '+esc(r.memo):''}</div>&#96;:''}
+    </div>
+    <div class="meter-btns">
+      <button class="sb ${r.st==='완료'?'on-d':''}" onclick="setSt(${r.row},'완료')">완료</button>
+      <button class="sb ${r.st==='미완료'?'on-u':''}" onclick="askUndone(${r.row})">미완료</button>
+    </div>
+  </div>&#96;;
+}
+const findRow=row=>S.rows.find(r=>r.row===row);
+function navK(a){openUrl('https://map.kakao.com/link/search/'+encodeURIComponent(a));}
+function navT(a){openUrl('tmap://search?name='+encodeURIComponent(a));}
+function setSt(row,st){
+  const r=findRow(row);if(!r)return;
+  const nst=r.st===st?'미착수':st;r.st=nst;r.rs='';renderRows();
+  save([{row:r.row,m:r.m,st:nst,rs:'',memo:r.memo||''}]);
+  toast(nst==='완료'?'✅ 완료':'↩️ 취소');
+}
+function allDone(jb){
+  const L=S.rows.filter(r=>r.jb===jb&&r.st!=='완료');
+  if(!L.length){toast('이미 모두 완료');return;}
+  if(L.length>1&&!confirm(&#96;${jb}\n계기 ${L.length}대를 모두 완료 처리할까요?&#96;))return;
+  L.forEach(r=>{r.st='완료';r.rs='';});renderRows();
+  save(L.map(r=>({row:r.row,m:r.m,st:'완료',rs:'',memo:r.memo||''})));
+  toast(&#96;✅ ${L.length}대 완료&#96;);
+}
+function askUndone(row){
+  const r=findRow(row);if(!r)return;
+  if(r.st==='미완료'){setSt(row,'미완료');return;}
+  let pick=r.rs||'';
+  const m=document.createElement('div');m.className='modal';
+  const draw=()=>m.innerHTML=&#96;<div class="sheet"><h3>미완료 사유 · 계기 ${esc(String(r.m).slice(-4))}</h3>
+    <div class="rgrid">${REASONS.map(x=>&#96;<button class="${pick===x?'on':''}" data-r="${esc(x)}">${esc(x)}</button>&#96;).join('')}</div>
+    <input id="uMemo" placeholder="메모 (선택)" value="${esc(r.memo||'')}">
+    <div class="btns"><button class="b2" data-x="1">취소</button><button class="b1" data-ok="1">저장</button></div></div>&#96;;
+  draw();
+  m.onclick=e=>{
+    const b=e.target.closest('button');
+    if(e.target===m||b&&b.dataset.x){m.remove();return;}
+    if(b&&b.dataset.r){const memo=$('uMemo').value;pick=b.dataset.r;draw();$('uMemo').value=memo;return;}
+    if(b&&b.dataset.ok){
+      if(!pick){toast('사유를 선택해주세요');return;}
+      r.st='미완료';r.rs=pick;r.memo=$('uMemo').value.trim();m.remove();renderRows();
+      save([{row:r.row,m:r.m,st:'미완료',rs:pick,memo:r.memo}]);toast('⚠️ 미완료 저장');
+    }
+  };
+  document.body.appendChild(m);
+}
+
+/* ── 공정률 ── */
+let D=null;
+async function loadDash(){
+  S.view='dash';
+  $('mainWrap').innerHTML='<div class="spin">공정률 집계 중… (10초 정도)</div>';
+  try{D=await call('summary',U.name,U.pin);renderDash();}
+  catch(e){$('mainWrap').innerHTML=&#96;<div class="card">⚠️ ${esc(e.message||e)}</div>&#96;;}
+}
+function renderDash(){
+  const d=D,gp=d.actPct-d.planPct;
+  const dd=Math.max(0,Math.ceil((new Date(d.end+'T00:00:00')-new Date(d.today+'T00:00:00'))/864e5));
+  const late=d.forecast&&d.forecast>d.end;
+  const dims=[['worker','작업자'],['office','사업소'],['type','계기타입'],['ms','통신'],['dcu','DCU차수']];
+  $('mainWrap').innerHTML=&#96;
+  <div class="card">
+    <h2>전체 공정률</h2>
+    <div class="kpi-grid">
+      <div class="kpi-box hi">
+        <div class="kpi-lbl">실적 공정률</div>
+        <div class="kpi-val">${d.actPct.toFixed(1)}<small>%</small></div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-lbl">계획 (오늘 기준)</div>
+        <div class="kpi-val">${d.planPct.toFixed(1)}<small>%</small></div>
+      </div>
+    </div>
+    ${bar(d.done,d.undone,d.tot)}
+    <div class="gap-pill ${gp>=0?'ahead':'behind'}" style="margin-top:10px">
+      ${gp>=0?'🟢':'🔴'} 계획보다 <b>${Math.abs(gp).toFixed(1)}%p ${gp>=0?'앞섬':'늦음'}</b>
+      &nbsp;·&nbsp; 완료 ${fmt(d.done)} / ${fmt(d.tot)}대 · 미완료 ${fmt(d.undone)}대
+    </div>
+    <div class="kpi-grid three" style="margin-top:12px">
+      <div class="kpi-box"><div class="kpi-lbl">오늘 완료</div><div class="kpi-val" style="font-size:20px">${fmt(d.todayDone)}</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">10일 평균/일</div><div class="kpi-val" style="font-size:20px">${fmt(d.recent)}</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">목표까지/일</div><div class="kpi-val" style="font-size:20px">${fmt(d.need)}</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">D-day</div><div class="kpi-val" style="font-size:20px">D-${dd}</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">남은 작업일</div><div class="kpi-val" style="font-size:20px">${d.remainDays}</div></div>
+      <div class="kpi-box ${late?'hi2':''}"><div class="kpi-lbl">예상 완료</div><div class="kpi-val" style="font-size:17px">${d.forecast?d.forecast.slice(2).replace(/-/g,'.'):' —'}${late?' ⚠️':''}</div></div>
+    </div>
+    <div class="muted" style="margin-top:10px;text-align:right">집계 ${esc(d.at)} · <a href="#" onclick="loadDash();return false">새로고침</a></div>
+  </div>
+
+  <div class="card">
+    <h2>누적 공정률</h2>
+    <div class="lg"><span><i style="border-color:var(--mute);border-top-style:dashed"></i>계획</span><span><i style="border-color:var(--done)"></i>실적</span></div>
+    <div class="chart" id="chart"></div>
+    <details><summary>일별 완료 상세</summary>
+      <table><tr><th>날짜</th><th>완료</th></tr>
+        ${d.last14.slice().reverse().map(x=>&#96;<tr><td>${x[0]}</td><td>${fmt(x[1])}</td></tr>&#96;).join('')||'<tr><td colspan=2>아직 실적 없음</td></tr>'}
+      </table>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>구분별 진행</h2>
+    <div class="seg">${dims.map(([k,l])=>&#96;<button class="${S.dimKey===k?'on':''}" onclick="S.dimKey='${k}';renderDash()">${l}</button>&#96;).join('')}</div>
+    <div class="lg"><span><i style="border-color:var(--done);border-top-width:8px"></i>완료</span><span><i style="border-color:var(--undone);border-top-width:8px"></i>미완료</span><span><i style="border-color:var(--todo);border-top-width:8px"></i>남음</span></div>
+    ${dimBars(S.dimKey)}
+  </div>
+
+  ${Object.keys(d.by.reason).length?&#96;<div class="card"><h2>미완료 사유</h2>
+    <table>${Object.entries(d.by.reason).sort((a,b)=>b[1]-a[1]).map(([k,v])=>&#96;<tr><td>${esc(k)}</td><td>${fmt(v)}대</td></tr>&#96;).join('')}</table>
+  </div>&#96;:''}&#96;;
+  drawChart();
+}
+function dimBars(k){
+  const m=D.by[k];let keys=Object.keys(m);
+  if(k==='worker'){const o=D.workerOrder;keys.sort((a,b)=>(o.indexOf(a)+1||99)-(o.indexOf(b)+1||99));}
+  else keys.sort((a,b)=>m[b][0]-m[a][0]);
+  return keys.map(x=>{const[t,dn,un]=m[x];return&#96;<div class="hb"><div class="prow"><span class="t">${esc(x)}</span><span class="n">${pct(dn,t).toFixed(1)}% · ${fmt(dn)}/${fmt(t)}${un?&#96; · 미완료 ${fmt(un)}&#96;:''}</span></div>${bar(dn,un,t)}</div>&#96;;}).join('');
+}
+function drawChart(){
+  const s=D.series,box=$('chart');
+  if(!s.length){box.innerHTML='<div class="muted">설정 탭의 시작일/종료일을 확인하세요</div>';return;}
+  const W=640,H=300,LL=40,R=12,T=12,B=30,iw=W-LL-R,ih=H-T-B,n=s.length;
+  const X=i=>LL+(n<2?0:i/(n-1)*iw),Y=v=>T+ih-v/100*ih;
+  const act=s.filter(p=>p.act!=null);let g='';
+  [0,25,50,75,100].forEach(v=>g+=&#96;<line x1="${LL}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${LL-6}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--mute)">${v}%</text>&#96;);
+  let lm='';s.forEach((p,i)=>{const mo=p.d.slice(0,7);if(mo!==lm){lm=mo;g+=&#96;<text x="${X(i)}" y="${H-10}" text-anchor="${i===0?'start':'middle'}" font-size="11" fill="var(--mute)">${+p.d.slice(5,7)}월</text>&#96;;}});
+  const path=(pts,f)=>pts.map((p,j)=>&#96;${j?'L':'M'}${X(s.indexOf(p)).toFixed(1)},${Y(f(p)).toFixed(1)}&#96;).join('');
+  g+=&#96;<path d="${path(s,p=>p.plan)}" fill="none" stroke="var(--mute)" stroke-width="2" stroke-dasharray="5 4"/>&#96;;
+  if(act.length){const lp=act[act.length-1],li=s.indexOf(lp);g+=&#96;<path d="${path(act,p=>p.act)}" fill="none" stroke="var(--done)" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${X(li)}" cy="${Y(lp.act)}" r="5" fill="var(--done)" stroke="var(--surface)" stroke-width="2"/><text x="${Math.min(X(li)+8,W-R-40)}" y="${Y(lp.act)-8}" font-size="12" font-weight="800" fill="var(--ink)">${lp.act.toFixed(1)}%</text>&#96;;}
+  g+=&#96;<line id="cx" y1="${T}" y2="${T+ih}" stroke="var(--mute)" stroke-width="1" visibility="hidden"/><rect x="${LL}" y="${T}" width="${iw}" height="${ih}" fill="transparent" id="hit"/>&#96;;
+  box.innerHTML=&#96;<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="누적 공정률 계획 대비 실적">${g}</svg><div class="tip" id="tip"></div>&#96;;
+  const svg=box.querySelector('svg'),tip=$('tip'),cx=svg.querySelector('#cx');
+  const mv=e=>{const pt=e.touches?e.touches[0]:e,rc=svg.getBoundingClientRect();const x=(pt.clientX-rc.left)/rc.width*W;let i=Math.round((x-LL)/iw*(n-1));i=Math.max(0,Math.min(n-1,i));const p=s[i];cx.setAttribute('x1',X(i));cx.setAttribute('x2',X(i));cx.setAttribute('visibility','visible');tip.innerHTML=&#96;<b>${p.d}</b><br>계획 ${p.plan.toFixed(1)}%${p.act!=null?&#96;<br>실적 <b>${p.act.toFixed(1)}%</b> (당일 ${fmt(p.day)}대)&#96;:''}&#96;;tip.style.display='block';const left=X(i)/W*rc.width;tip.style.left=Math.max(0,Math.min(rc.width-tip.offsetWidth,left-tip.offsetWidth/2))+'px';tip.style.top='0px';};
+  const hide=()=>{tip.style.display='none';cx.setAttribute('visibility','hidden');};
+  svg.addEventListener('mousemove',mv);svg.addEventListener('touchstart',mv,{passive:true});svg.addEventListener('touchmove',mv,{passive:true});svg.addEventListener('mouseleave',hide);svg.addEventListener('touchend',()=>setTimeout(hide,1500));
+}
+
+/* ── 자재 ── */
+let matlStock=null;
+async function loadMatl(){
+  $('mainWrap').innerHTML='<div class="spin">자재 현황 불러오는 중…</div>';
+  try{const res=await call('getMatlStock');matlStock=Array.isArray(res)?res:[];renderMatl();}
+  catch(err){$('mainWrap').innerHTML=&#96;<div class="card" style="color:var(--undone)">오류: ${esc(err.message)}</div>&#96;;}
+}
+function renderMatl(){
+  if(!matlStock)return loadMatl();
+  const total=matlStock.reduce((s,x)=>s+x.remain,0);
+  const dispTotal=matlStock.reduce((s,x)=>s+x.dispatched,0);
+  const stockRows=matlStock.map(x=>{
+    const p=x.recv>0?Math.round(x.dispatched/x.recv*100):0;
+    const fc=p>90?'var(--undone)':p>70?'#f59e0b':'var(--done)';
+    return&#96;<tr>
+      <td>${esc(x.name)}</td>
+      <td>${fmt(x.recv)}</td>
+      <td>${fmt(x.dispatched)}</td>
+      <td style="font-weight:800;color:${x.remain<100?'var(--undone)':'var(--done)'}">${fmt(x.remain)}</td>
+      <td style="min-width:60px"><div class="stock-bar"><div class="fill" style="background:${fc};width:${p}%"></div></div></td>
+    </tr>&#96;;
+  }).join('');
+  $('mainWrap').innerHTML=&#96;
+  <div class="card">
+    <h2>자재 현황</h2>
+    <div class="matl-kpi">
+      <div class="mk" style="background:#e0f2fe;color:#0369a1">
+        <div class="mv">${matlStock.length}</div><div class="ml">자재 종류</div>
+      </div>
+      <div class="mk" style="background:var(--done-bg);color:var(--done-fg)">
+        <div class="mv">${fmt(dispTotal)}</div><div class="ml">총 분출</div>
+      </div>
+      <div class="mk" style="background:var(--undone-bg);color:var(--undone-fg)">
+        <div class="mv">${fmt(total)}</div><div class="ml">총 잔량</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>자재명</th><th>수령</th><th>분출</th><th>잔량</th><th>현황</th></tr></thead>
+        <tbody>${stockRows}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>자재 분출 등록</h2>
+    <div class="form-group">
+      <label>자재 선택</label>
+      <select id="dispId">${matlStock.map(x=>&#96;<option value="${esc(x.id)}">${esc(x.name)} (잔량: ${fmt(x.remain)})</option>&#96;).join('')}</select>
+    </div>
+    <div class="form-group">
+      <label>수량</label>
+      <input id="dispQty" type="number" min="1" placeholder="수량 입력">
+    </div>
+    <div class="form-group">
+      <label>비고 (선택)</label>
+      <input id="dispNote" type="text" placeholder="메모">
+    </div>
+    <button class="btn-primary" onclick="submitDispatch()">📤 분출 등록</button>
+  </div>&#96;;
+}
+async function submitDispatch(){
+  const id=$('dispId').value,qty=parseInt($('dispQty').value),note=$('dispNote').value;
+  if(!id||!qty||qty<=0){toast('자재와 수량을 입력하세요');return;}
+  const item=matlStock.find(x=>x.id===id);
+  if(item&&qty>item.remain){toast('잔량 부족: '+item.remain+' EA');return;}
+  try{
+    const res=await call('addMatlDispatch',id,qty,U.name,U.office,note);
+    if(res.ok){toast('분출 등록 완료 ('+qty+' EA)');matlStock=null;loadMatl();}
+    else toast('오류: '+(res.error||'실패'));
+  }catch(err){toast('오류: '+err.message);}
+}
+
+boot();
+</script>
 </body>
 </html>

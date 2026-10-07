@@ -232,27 +232,60 @@ function onPhoto(input){
 }
 
 function runOCR(url){
+  var done=false;
+
+  // 30초 타임아웃
+  var timer=setTimeout(function(){
+    if(done)return;
+    done=true;
+    failOverlay('⏱ 시간 초과');
+    toast('⏱ 인식 시간 초과 — 직접 입력해주세요');
+  },30000);
+
   Tesseract.recognize(url,['kor','eng'],{
     logger:function(m){
+      if(done)return;
       if(m.status==='recognizing text'){
         document.getElementById('ocrMsg').textContent='인식 중... '+Math.round((m.progress||0)*100)+'%';
       }
     }
   }).then(function(result){
+    if(done)return;
+    done=true;
+    clearTimeout(timer);
     hideOverlay();
     var text=(result.data&&result.data.text)||'';
-    if(!text.trim()){toast('텍스트를 인식하지 못했어요 — 직접 입력해주세요');return;}
+    if(!text.trim()){
+      failOverlay('❌ 읽기 실패');
+      toast('❌ 텍스트를 읽지 못했어요 — 직접 입력해주세요');
+      return;
+    }
     showOcrRaw(text);
     parseAndFill(text,'OCR');
   }).catch(function(e){
-    hideOverlay();
-    toast('인식 실패 — 직접 입력해주세요');
+    if(done)return;
+    done=true;
+    clearTimeout(timer);
+    failOverlay('❌ 인식 실패');
+    toast('❌ 인식 실패 — 직접 입력해주세요');
     console.error(e);
   });
 }
 
 function hideOverlay(){
   document.getElementById('ocrOverlay').style.display='none';
+  document.getElementById('ocrOverlay').style.background='rgba(0,0,0,.45)'; // 원복
+}
+function failOverlay(msg){
+  var ov=document.getElementById('ocrOverlay');
+  ov.style.background='rgba(180,30,30,.75)';
+  document.getElementById('ocrSpinner').style.display='none';
+  document.getElementById('ocrMsg').textContent=msg||'인식 실패';
+  // 2초 후 자동으로 오버레이 닫기
+  setTimeout(function(){
+    hideOverlay();
+    document.getElementById('ocrSpinner').style.display='';
+  },2000);
 }
 function showOcrRaw(text){
   var el=document.getElementById('ocrRaw');

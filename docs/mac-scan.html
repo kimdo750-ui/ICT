@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LTE E타입 MAC 스캔</title>
+<style>
+:root{
+  --bg:#f5f6f8;--card:#fff;--line:#e4e6eb;--ink:#1a1b1e;--ink2:#6b7280;--mute:#9ca3af;
+  --navy:#1d4ed8;--red:#dc2626;--done:#16a34a;--done-bg:#dcfce7;--warn:#d97706;--warn-bg:#fef3c7;
+  --radius:14px;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+button{font-family:inherit;cursor:pointer}
+
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px;position:sticky;top:0;z-index:10}
+header h1{font-size:18px;font-weight:900;color:var(--navy)}
+header .sub{font-size:12px;color:var(--mute);margin-top:2px}
+
+main{padding:14px 16px 110px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+
+/* 단계 표시 */
+.step-bar{display:flex;gap:6px;margin-bottom:14px}
+.step{flex:1;text-align:center;font-size:11px;font-weight:700;padding:7px 4px;border-radius:8px;background:var(--bg);color:var(--mute);border:1.5px solid var(--line)}
+.step.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.step.done{background:var(--done-bg);color:var(--done);border-color:var(--done)}
+
+/* 박스번호 입력 */
+.big-input{width:100%;font-size:22px;font-weight:900;padding:14px 16px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-family:'Courier New',Consolas,monospace;text-align:center;letter-spacing:2px}
+.big-input:focus{outline:none;border-color:var(--navy)}
+
+/* 스캔 버튼 */
+.btn-scan{width:100%;border:0;background:var(--navy);color:#fff;font-size:18px;font-weight:800;padding:18px;border-radius:13px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:10px;position:relative}
+.btn-scan:active{opacity:.85}
+.scan-count-badge{position:absolute;right:16px;background:rgba(255,255,255,.25);border-radius:20px;padding:3px 10px;font-size:14px}
+
+/* 미리보기 + OCR 오버레이 */
+#previewWrap{display:none;margin-bottom:10px;position:relative}
+#previewImg{width:100%;border-radius:10px;display:block;max-height:200px;object-fit:contain;background:#000}
+#ocrOverlay{position:absolute;inset:0;background:rgba(0,0,0,.5);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;gap:8px}
+#ocrSpinner{width:36px;height:36px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 수동 입력 행 */
+.manual-row{display:flex;gap:8px;margin-bottom:10px}
+.mac-input{flex:1;font-size:15px;padding:12px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-family:'Courier New',Consolas,monospace;letter-spacing:1px}
+.mac-input:focus{outline:none;border-color:var(--navy)}
+.btn-add-mac{border:0;background:var(--navy);color:#fff;font-size:18px;font-weight:900;padding:12px 18px;border-radius:10px}
+
+/* MAC 목록 */
+.mac-list-wrap{max-height:300px;overflow-y:auto;margin-bottom:10px}
+.mac-entry{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--bg);border-radius:9px;margin-bottom:5px}
+.mac-entry .num{font-size:12px;color:var(--mute);min-width:28px;text-align:right}
+.mac-entry .mac-val{flex:1;font-family:'Courier New',Consolas,monospace;font-size:13px;font-weight:700;color:var(--ink);word-break:break-all}
+.mac-entry .del{border:0;background:none;color:var(--mute);font-size:17px;padding:0 4px}
+.mac-entry.new-entry{animation:flash .5s ease}
+@keyframes flash{0%{background:var(--done-bg);}100%{background:var(--bg);}}
+
+/* 박스 완료 버튼 */
+.btn-finish-box{width:100%;border:0;background:var(--done);color:#fff;font-size:16px;font-weight:800;padding:15px;border-radius:12px;margin-bottom:8px}
+.btn-finish-box:disabled{opacity:.4;cursor:default}
+
+/* 완료된 박스 목록 */
+.box-summary{background:var(--done-bg);border:1.5px solid var(--done);border-radius:11px;padding:12px;margin-bottom:8px}
+.box-summary .box-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.box-summary .box-no{font-size:15px;font-weight:900;color:var(--done)}
+.box-summary .box-cnt{font-size:13px;font-weight:700;color:var(--done)}
+.box-summary .box-macs{font-family:'Courier New',Consolas,monospace;font-size:11px;color:var(--ink2);max-height:60px;overflow:hidden;text-overflow:ellipsis}
+.box-summary .del-box{border:0;background:none;color:var(--red);font-size:13px;font-weight:700;padding:2px 6px}
+.box-summary.expanded .box-macs{max-height:none}
+
+/* 하단 고정 버튼 */
+.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;z-index:20}
+.btn-new-box{flex:none;border:1.5px solid var(--navy);background:var(--bg);color:var(--navy);font-size:14px;font-weight:700;padding:13px 14px;border-radius:12px}
+.btn-excel{flex:1;border:0;background:#217346;color:#fff;font-size:15px;font-weight:800;padding:14px;border-radius:12px}
+.btn-excel:disabled{opacity:.4;cursor:default}
+
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:14px;font-weight:700;padding:10px 18px;border-radius:24px;opacity:0;transition:.2s;pointer-events:none;z-index:80;white-space:nowrap}
+#toast.on{opacity:1}
+
+/* 빈 상태 */
+.empty-hint{text-align:center;padding:24px 16px;color:var(--mute);font-size:14px}
+.empty-hint .icon{font-size:40px;margin-bottom:8px}
+
+/* OCR 원본 */
+#ocrRaw{font-size:11px;color:var(--mute);background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:8px;word-break:break-all;display:none;max-height:60px;overflow-y:auto}
+
+/* 중복 경고 */
+.dup-warn{background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--warn);margin-bottom:8px;display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📡 LTE E타입 MAC 스캔</h1>
+  <div class="sub" id="hSub">박스 개봉 후 모뎀 MAC 하나씩 스캔</div>
+</header>
+
+<main>
+  <!-- 현재 박스 입력 섹션 -->
+  <div class="card" id="currentBoxCard">
+    <h2>📦 현재 박스</h2>
+
+    <!-- 박스번호 -->
+    <div style="margin-bottom:10px">
+      <label style="display:block;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:6px">박스번호</label>
+      <input type="text" id="boxNoInput" class="big-input" placeholder="박스번호 입력"
+             inputmode="numeric" maxlength="20"
+             onkeydown="if(event.key==='Enter')focusMacInput()">
+    </div>
+
+    <!-- 카메라 input -->
+    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(this)">
+
+    <!-- 스캔 버튼 -->
+    <button class="btn-scan" onclick="document.getElementById('photoInput').click()">
+      <span style="font-size:22px">📷</span>
+      <span>모뎀 MAC 스캔</span>
+      <span class="scan-count-badge" id="scanBadge">0개</span>
+    </button>
+
+    <!-- 사진 미리보기 -->
+    <div id="previewWrap">
+      <img id="previewImg" src="" alt="모뎀사진">
+      <div id="ocrOverlay">
+        <div id="ocrSpinner"></div>
+        <div id="ocrMsg">MAC 인식 중...</div>
+      </div>
+    </div>
+
+    <!-- OCR 원본 -->
+    <div id="ocrRaw"></div>
+
+    <!-- 중복 경고 -->
+    <div class="dup-warn" id="dupWarn">⚠️ 이미 입력된 MAC입니다!</div>
+
+    <!-- 수동 입력 -->
+    <div class="manual-row">
+      <input type="text" id="macManual" class="mac-input"
+             placeholder="MAC 직접 입력 후 +"
+             inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters"
+             onkeydown="if(event.key==='Enter')addMacManual()">
+      <button class="btn-add-mac" onclick="addMacManual()">＋</button>
+    </div>
+
+    <!-- 현재 박스 MAC 목록 -->
+    <div id="dupWarnArea"></div>
+    <div class="mac-list-wrap" id="curMacList"></div>
+
+    <!-- 박스 완료 버튼 -->
+    <button class="btn-finish-box" id="btnFinish" onclick="finishBox()" disabled>
+      ✅ 이 박스 완료 &amp; 다음 박스
+    </button>
+  </div>
+
+  <!-- 완료된 박스 목록 -->
+  <div class="card" id="doneBoxCard" style="display:none">
+    <h2>✅ 완료된 박스 <span id="doneCount" style="color:var(--navy)"></span></h2>
+    <div id="doneList"></div>
+  </div>
+
+  <!-- 안내 -->
+  <div class="card" style="background:var(--warn-bg);border-color:var(--warn)">
+    <h2 style="color:var(--warn)">📋 사용방법</h2>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.7">
+      1. 박스번호 입력 후 Enter<br>
+      2. 모뎀 하나씩 📷 스캔 (MAC 라벨 촬영)<br>
+      3. OCR 실패 시 수동으로 직접 입력<br>
+      4. 박스 내 모뎀 모두 완료 → ✅ 박스 완료<br>
+      5. 다음 박스 반복 → 📊 엑셀 저장
+    </div>
+  </div>
+</main>
+
+<div class="bottom">
+  <button class="btn-new-box" onclick="newBox()">📦 새 박스</button>
+  <button class="btn-excel" id="btnExcel" onclick="saveExcel()" disabled>📊 엑셀 저장</button>
+</div>
+<div id="toast"></div>
+<canvas id="qcvs" style="display:none"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+<!-- SheetJS (엑셀 저장) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ─── 데이터 ───────────────────────────────────────────
+var curBoxNo = '';
+var curMacs = [];        // 현재 박스의 MAC 배열
+var doneBuoxes = [];     // [{boxno, macs:[]}]
+var allMacs = new Set(); // 전체 중복 체크용
+
+// ─── 초기화 ───────────────────────────────────────────
+document.getElementById('boxNoInput').focus();
+updateHeader();
+
+function updateHeader(){
+  var total = doneBuoxes.reduce(function(s,b){return s+b.macs.length;},0) + curMacs.length;
+  document.getElementById('hSub').textContent =
+    '완료 박스 '+doneBuoxes.length+'개 · 총 '+total+'개 MAC 입력됨';
+}
+
+function focusMacInput(){
+  var box = document.getElementById('boxNoInput').value.trim();
+  if(!box){ toast('📦 박스번호를 먼저 입력해주세요'); return; }
+  curBoxNo = box;
+  document.getElementById('macManual').focus();
+}
+
+// ─── 사진 촬영 ────────────────────────────────────────
+function onPhoto(input){
+  if(!input.files||!input.files[0]) return;
+  var box = document.getElementById('boxNoInput').value.trim();
+  if(!box){ toast('📦 박스번호를 먼저 입력해주세요'); input.value=''; return; }
+  curBoxNo = box;
+
+  var file = input.files[0];
+  var url = URL.createObjectURL(file);
+
+  var pw = document.getElementById('previewWrap');
+  var pi = document.getElementById('previewImg');
+  pi.src = url;
+  pw.style.display = 'block';
+  document.getElementById('ocrOverlay').style.display = 'flex';
+  document.getElementById('ocrOverlay').style.background = 'rgba(0,0,0,.5)';
+  document.getElementById('ocrSpinner').style.display = '';
+  document.getElementById('ocrMsg').textContent = 'QR/바코드 인식 중...';
+
+  var img = new Image();
+  img.onload = function(){
+    var c = document.getElementById('qcvs');
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    var idata = ctx.getImageData(0,0,c.width,c.height);
+    var qr = jsQR(idata.data, idata.width, idata.height, {inversionAttempts:'attemptBoth'});
+    if(qr && qr.data){
+      hideOverlay();
+      var mac = extractMac(qr.data);
+      if(mac){ addMac(mac, 'QR'); }
+      else {
+        toast('⚠️ QR 인식됨: '+qr.data.slice(0,30)+' — MAC 형식 확인 필요');
+        document.getElementById('macManual').value = qr.data;
+        document.getElementById('macManual').focus();
+      }
+    } else {
+      document.getElementById('ocrMsg').textContent = 'MAC 텍스트 인식 중...';
+      runOCR(url);
+    }
+  };
+  img.src = url;
+  input.value = '';
+}
+
+function runOCR(url){
+  var done = false;
+  var timer = setTimeout(function(){
+    if(done) return;
+    done = true;
+    failOverlay('⏱ 시간 초과');
+    toast('⏱ 시간 초과 — 직접 입력해주세요');
+  }, 30000);
+
+  Tesseract.recognize(url, ['eng'], {
+    logger: function(m){
+      if(done) return;
+      if(m.status==='recognizing text')
+        document.getElementById('ocrMsg').textContent = '인식 중... '+Math.round((m.progress||0)*100)+'%';
+    }
+  }).then(function(result){
+    if(done) return;
+    done = true;
+    clearTimeout(timer);
+    hideOverlay();
+    var text = (result.data && result.data.text) || '';
+    showOcrRaw(text);
+    var mac = extractMac(text);
+    if(mac){
+      addMac(mac, 'OCR');
+    } else {
+      toast('⚠️ MAC 자동 인식 실패 — 직접 입력해주세요');
+      // OCR 결과를 입력창에 넣어서 수정 편의 제공
+      var cleaned = text.replace(/\s/g,'').toUpperCase();
+      if(cleaned.length >= 8) document.getElementById('macManual').value = cleaned;
+      document.getElementById('macManual').focus();
+      document.getElementById('macManual').select();
+    }
+  }).catch(function(e){
+    if(done) return;
+    done = true;
+    clearTimeout(timer);
+    failOverlay('❌ 인식 실패');
+    toast('❌ 인식 실패 — 직접 입력해주세요');
+    document.getElementById('macManual').focus();
+  });
+}
+
+function hideOverlay(){
+  document.getElementById('ocrOverlay').style.display = 'none';
+}
+function failOverlay(msg){
+  var ov = document.getElementById('ocrOverlay');
+  ov.style.background = 'rgba(180,30,30,.75)';
+  document.getElementById('ocrSpinner').style.display = 'none';
+  document.getElementById('ocrMsg').textContent = msg;
+  setTimeout(function(){
+    hideOverlay();
+    document.getElementById('ocrSpinner').style.display = '';
+  }, 2000);
+}
+function showOcrRaw(text){
+  var el = document.getElementById('ocrRaw');
+  el.style.display = 'block';
+  el.textContent = 'OCR: '+text.replace(/\n/g,' ').slice(0,150);
+}
+
+// ─── MAC 추출 파싱 ─────────────────────────────────────
+// 지원 형식:
+//  AE타입: 숫자 8자리  예) 58067524
+//  G타입:  hex 16자리  예) 0508020105000805
+//  PLC:    표준MAC     예) 84:72:07:F0:2C:A7 또는 847207F02CA7
+function extractMac(text){
+  if(!text) return null;
+  var t = text.replace(/\s/g,'').toUpperCase();
+
+  // 표준 MAC (XX:XX:XX:XX:XX:XX 또는 XXXXXXXXXXXX)
+  var m1 = t.match(/([0-9A-F]{2}[:\-]){5}[0-9A-F]{2}/);
+  if(m1) return m1[0].replace(/[:\-]/g,'');
+
+  // 연속 12자리 hex
+  var m2 = t.match(/[0-9A-F]{12}/);
+  if(m2) return m2[0];
+
+  // G타입: 16자리 hex
+  var m3 = t.match(/[0-9A-F]{16}/);
+  if(m3) return m3[0];
+
+  // AE타입: 6~10자리 숫자
+  var m4 = t.match(/\b\d{6,10}\b/);
+  if(m4) return m4[0];
+
+  // 8자리 이상 연속 영숫자
+  var m5 = t.match(/[0-9A-F]{8,}/);
+  if(m5) return m5[0];
+
+  return null;
+}
+
+// ─── MAC 추가 ─────────────────────────────────────────
+function addMacManual(){
+  var val = document.getElementById('macManual').value.trim().toUpperCase().replace(/[:\- ]/g,'');
+  if(!val){ toast('MAC 주소를 입력해주세요'); return; }
+  var box = document.getElementById('boxNoInput').value.trim();
+  if(!box){ toast('📦 박스번호를 먼저 입력해주세요'); return; }
+  curBoxNo = box;
+  addMac(val, '수동');
+  document.getElementById('macManual').value = '';
+  document.getElementById('macManual').focus();
+}
+
+function addMac(mac, src){
+  mac = mac.trim().toUpperCase();
+  // 중복 체크
+  var isDup = allMacs.has(mac) || curMacs.indexOf(mac) !== -1;
+  var dupWarn = document.getElementById('dupWarn');
+  if(isDup){
+    dupWarn.style.display = '';
+    dupWarn.textContent = '⚠️ 이미 입력된 MAC: '+mac;
+    setTimeout(function(){ dupWarn.style.display='none'; }, 3000);
+    toast('⚠️ 중복! 이미 입력된 MAC입니다');
+    return;
+  }
+  dupWarn.style.display = 'none';
+
+  curMacs.push(mac);
+  allMacs.add(mac);
+  renderCurMacs();
+  updateBadge();
+  updateHeader();
+  toast('✅ ['+src+'] '+mac+' 추가 ('+curMacs.length+'번째)');
+
+  // 미리보기 숨기기
+  setTimeout(function(){
+    document.getElementById('previewWrap').style.display = 'none';
+    document.getElementById('ocrRaw').style.display = 'none';
+  }, 1500);
+}
+
+function renderCurMacs(){
+  var el = document.getElementById('curMacList');
+  if(!curMacs.length){
+    el.innerHTML = '<div class="empty-hint"><div class="icon">📱</div>모뎀을 스캔하거나 MAC을 입력하세요</div>';
+    document.getElementById('btnFinish').disabled = true;
+    return;
+  }
+  el.innerHTML = curMacs.map(function(m,i){
+    return '<div class="mac-entry new-entry" id="me'+i+'" style="animation-delay:'+(i===curMacs.length-1?.1:0)+'s">'+
+      '<span class="num">'+(i+1)+'</span>'+
+      '<span class="mac-val">'+esc(m)+'</span>'+
+      '<button class="del" onclick="delCurMac('+i+')">✕</button>'+
+    '</div>';
+  }).reverse().join(''); // 최신이 위로
+  document.getElementById('btnFinish').disabled = false;
+}
+
+function delCurMac(i){
+  var mac = curMacs[i];
+  curMacs.splice(i, 1);
+  allMacs.delete(mac);
+  renderCurMacs();
+  updateBadge();
+  updateHeader();
+}
+
+function updateBadge(){
+  document.getElementById('scanBadge').textContent = curMacs.length+'개';
+}
+
+// ─── 박스 완료 ─────────────────────────────────────────
+function finishBox(){
+  var box = document.getElementById('boxNoInput').value.trim();
+  if(!box){ toast('📦 박스번호를 입력해주세요'); return; }
+  if(!curMacs.length){ toast('MAC을 하나 이상 입력해주세요'); return; }
+
+  // 저장
+  doneBuoxes.push({ boxno: box, macs: curMacs.slice() });
+  toast('✅ 박스 '+box+' 완료! ('+curMacs.length+'개 MAC)');
+
+  // 초기화
+  curBoxNo = '';
+  curMacs = [];
+  document.getElementById('boxNoInput').value = '';
+  renderCurMacs();
+  updateBadge();
+  renderDoneBoxes();
+  updateHeader();
+  document.getElementById('btnExcel').disabled = false;
+
+  // 다음 박스번호 자동 포커스
+  document.getElementById('boxNoInput').focus();
+  document.getElementById('previewWrap').style.display = 'none';
+  document.getElementById('ocrRaw').style.display = 'none';
+}
+
+function renderDoneBoxes(){
+  var card = document.getElementById('doneBoxCard');
+  var list = document.getElementById('doneList');
+  if(!doneBuoxes.length){ card.style.display='none'; return; }
+  card.style.display = '';
+  document.getElementById('doneCount').textContent = doneBuoxes.length+'박스 / 총 '+
+    doneBuoxes.reduce(function(s,b){return s+b.macs.length;},0)+'개';
+
+  list.innerHTML = doneBuoxes.map(function(b,bi){
+    return '<div class="box-summary" onclick="toggleExpand(this)">'+
+      '<div class="box-hd">'+
+        '<span class="box-no">📦 박스 '+esc(b.boxno)+'</span>'+
+        '<span style="display:flex;align-items:center;gap:8px">'+
+          '<span class="box-cnt">'+b.macs.length+'개</span>'+
+          '<button class="del-box" onclick="event.stopPropagation();deleteBox('+bi+')">🗑</button>'+
+        '</span>'+
+      '</div>'+
+      '<div class="box-macs">'+b.macs.slice(0,5).join(' · ')+(b.macs.length>5?' …':'')+'</div>'+
+    '</div>';
+  }).reverse().join('');
+}
+
+function toggleExpand(el){
+  el.classList.toggle('expanded');
+}
+
+function deleteBox(i){
+  if(!confirm(doneBuoxes[i].boxno+' 박스를 삭제할까요?')) return;
+  // allMacs에서 제거
+  doneBuoxes[i].macs.forEach(function(m){ allMacs.delete(m); });
+  doneBuoxes.splice(i, 1);
+  renderDoneBoxes();
+  updateHeader();
+  if(!doneBuoxes.length) document.getElementById('btnExcel').disabled = true;
+}
+
+function newBox(){
+  if(curMacs.length > 0){
+    if(!confirm('현재 입력 중인 '+curMacs.length+'개 MAC이 있습니다. 새 박스로 넘어갈까요?')) return;
+    // 현재 입력 버리기
+    curMacs.forEach(function(m){ allMacs.delete(m); });
+    curMacs = [];
+    renderCurMacs();
+    updateBadge();
+  }
+  document.getElementById('boxNoInput').value = '';
+  document.getElementById('boxNoInput').focus();
+  document.getElementById('previewWrap').style.display = 'none';
+  document.getElementById('ocrRaw').style.display = 'none';
+}
+
+// ─── 엑셀 저장 (SheetJS) ──────────────────────────────
+function saveExcel(){
+  if(!doneBuoxes.length && !curMacs.length){
+    toast('저장할 데이터가 없습니다');
+    return;
+  }
+
+  var wb = XLSX.utils.book_new();
+  var now = new Date();
+  var ds = now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일';
+
+  // 전체 요약 시트
+  var sumData = [['박스번호','MAC 개수','모뎀 MAC 목록 (최초 3개)']];
+  var allBoxes = doneBuoxes.slice();
+  if(curMacs.length > 0){
+    allBoxes.push({ boxno: document.getElementById('boxNoInput').value.trim()||'미완료', macs: curMacs });
+  }
+
+  allBoxes.forEach(function(b){
+    sumData.push([
+      b.boxno,
+      b.macs.length,
+      b.macs.slice(0,3).join(', ')+(b.macs.length>3?' 외 '+(b.macs.length-3)+'개':'')
+    ]);
+  });
+  sumData.push(['','','']);
+  sumData.push(['저장일시', ds, '']);
+
+  var wsSummary = XLSX.utils.aoa_to_sheet(sumData);
+  // 열 너비
+  wsSummary['!cols'] = [{wch:14},{wch:10},{wch:50}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, '요약');
+
+  // 박스별 시트
+  allBoxes.forEach(function(b){
+    var sheetData = [
+      ['박스번호', b.boxno],
+      ['MAC 개수', b.macs.length],
+      ['저장일시', ds],
+      [],
+      ['No','모뎀 MAC']
+    ];
+    b.macs.forEach(function(m, i){
+      sheetData.push([i+1, m]);
+    });
+    var ws = XLSX.utils.aoa_to_sheet(sheetData);
+    ws['!cols'] = [{wch:6},{wch:20}];
+    // 시트명 제한 (31자 이하, 특수문자 불가)
+    var sheetName = ('BOX-'+String(b.boxno)).slice(0,31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  var fname = 'E타입_MAC_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.xlsx';
+  try {
+    XLSX.writeFile(wb, fname);
+    toast('📊 '+fname+' 저장 완료!');
+  } catch(e) {
+    // Blob fallback
+    var wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    var blob = new Blob([wbout], {type:'application/octet-stream'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = fname; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    toast('📊 엑셀 다운로드 완료!');
+  }
+}
+
+// ─── 유틸 ──────────────────────────────────────────────
+function esc(s){ return String(s==null?'':s).replace(/[<>&"']/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c];}); }
+function toast(m){ var t=document.getElementById('toast');t.innerHTML=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2500); }
+
+// 초기 렌더
+renderCurMacs();
+</script>
+</body>
+</html>

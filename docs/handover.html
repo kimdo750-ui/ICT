@@ -109,12 +109,24 @@ h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-tran
   <div class="card">
     <h2>&#128230; 박스 등록</h2>
 
-    <!-- 카메라 input -->
-    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(this)">
+    <!-- 박스번호 직접 입력 (메인) -->
+    <div class="field" style="margin-bottom:6px">
+      <label>박스번호</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="manBoxVis" type="number" inputmode="numeric" pattern="[0-9]*"
+               placeholder="004868" style="flex:1;font-size:20px;font-weight:900;font-family:'Courier New',monospace;letter-spacing:2px;text-align:center"
+               oninput="document.getElementById('manBox').value=this.value"
+               onkeydown="if(event.key==='Enter'&&this.value.trim())lookupMac(this.value.trim())">
+        <button style="border:0;background:var(--navy);color:#fff;border-radius:10px;padding:11px 14px;font-size:15px;font-weight:800;white-space:nowrap"
+                onclick="var v=document.getElementById('manBoxVis').value.trim();if(v)lookupMac(v);else toast('박스번호를 입력하세요')">조회</button>
+      </div>
+    </div>
 
-    <!-- 스캔 버튼 (메인 액션) -->
-    <button class="btn-photo" onclick="document.getElementById('photoInput').click()">
-      <span style="font-size:22px">&#128247;</span> 박스 스캔
+    <!-- 카메라 스캔 보조 버튼 -->
+    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhoto(this)">
+    <button style="width:100%;border:1.5px dashed var(--line);background:var(--bg);color:var(--ink2);font-size:13px;font-weight:700;padding:11px;border-radius:11px;margin-bottom:10px"
+            onclick="document.getElementById('photoInput').click()">
+      &#128247; 카메라로 스캔 (보조)
     </button>
 
     <!-- 사진 미리보기 + OCR 오버레이 -->
@@ -126,12 +138,12 @@ h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-tran
       </div>
     </div>
 
-    <!-- OCR 원본 (접힘) -->
+    <!-- OCR 원본 -->
     <div id="ocrRaw"></div>
 
-    <!-- 인식 결과 카드 (스캔 후 표시) -->
+    <!-- 조회 결과 카드 -->
     <div id="scanResult" style="display:none;background:var(--done-bg);border:1.5px solid var(--done);border-radius:11px;padding:12px;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--done);margin-bottom:6px">&#9989; 인식 결과</div>
+      <div style="font-size:12px;font-weight:700;color:var(--done);margin-bottom:6px">&#9989; 조회 결과</div>
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
         <div>
           <div style="font-size:18px;font-weight:900;font-family:'Courier New',monospace" id="scanBoxNo">—</div>
@@ -142,23 +154,21 @@ h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-tran
           <div style="font-size:11px;color:var(--ink2)">EA</div>
         </div>
       </div>
-      <!-- 수정 가능 숨김 필드 -->
       <input id="manName" type="hidden">
       <input id="manBox" type="hidden">
       <input id="manQty" type="hidden">
     </div>
 
-    <!-- 데이터 없을 때만 표시되는 수동 입력 -->
-    <div id="manualFallback" style="display:none">
-      <div style="font-size:12px;color:var(--warn);font-weight:700;margin-bottom:8px">&#9888;&#65039; 데이터 없음 — 수동 입력</div>
-      <div class="field"><label>품명</label><input id="manNameVis" placeholder="예: E타입 모뎀" oninput="document.getElementById('manName').value=this.value"></div>
+    <!-- 데이터 없는 박스 (E타입 등) 수동 수량 입력 -->
+    <div id="manualFallback" style="display:none;background:#fffbeb;border:1.5px solid var(--warn);border-radius:11px;padding:12px;margin-bottom:10px">
+      <div style="font-size:12px;color:var(--warn);font-weight:700;margin-bottom:8px">&#9888;&#65039; 제조사 데이터 없음 — 수량 직접 입력</div>
       <div class="row2">
-        <div class="field"><label>박스번호</label><input id="manBoxVis" placeholder="박스번호" oninput="document.getElementById('manBox').value=this.value" onblur="if(this.value)lookupMac(this.value)" onkeydown="if(event.key==='Enter'&&this.value)lookupMac(this.value)"></div>
-        <div class="field"><label>수량(EA)</label><input id="manQtyVis" type="number" placeholder="?" oninput="document.getElementById('manQty').value=this.value;if(this.value&&document.getElementById('manBox').value)document.getElementById('btnAddItem').style.display=''"></div>
+        <div class="field" style="margin:0"><label>품명</label><input id="manNameVis2" placeholder="예: E타입 모뎀" oninput="document.getElementById('manName').value=this.value"></div>
+        <div class="field" style="margin:0"><label>수량(EA)</label><input id="manQtyVis" type="number" inputmode="numeric" placeholder="?" oninput="document.getElementById('manQty').value=this.value;if(this.value)document.getElementById('btnAddItem').style.display=''"></div>
       </div>
     </div>
 
-    <!-- MAC 자동 조회 결과 패널 -->
+    <!-- MAC 조회 결과 패널 -->
     <div id="macPanel">
       <div class="mac-header">
         <span>&#128203;</span>
@@ -429,6 +439,9 @@ function addItem(){
   document.getElementById('scanResult').style.display='none';
   document.getElementById('manualFallback').style.display='none';
   document.getElementById('btnAddItem').style.display='none';
+  document.getElementById('manBoxVis').value='';
+  var nv2=document.getElementById('manNameVis2'); if(nv2) nv2.value='';
+  var qv=document.getElementById('manQtyVis'); if(qv) qv.value='';
   renderModem();
   toast('&#128230; 박스 '+boxno+' 추가됨 ('+qty+'EA)');
 }

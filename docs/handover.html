@@ -143,13 +143,14 @@ h2{font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:10px;text-tran
 
 <div class="bottom">
   <button class="btn-reset" onclick="resetAll()">&#128465;&#65039; 초기화</button>
-  <button class="btn-pdf" onclick="savePDF()">&#128196; PDF 저장</button>
+  <button class="btn-pdf" onclick="savePDF()">&#128247; 이미지 저장</button>
 </div>
 <div id="toast"></div>
 <canvas id="qcvs" style="display:none"></canvas>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 var WORKERS=[
   {name:'김동일',role:'현장대리인'},
@@ -373,7 +374,102 @@ function addSubRow(){
 function savePDF(){
   if(!selectedWorker){toast('작업자를 먼저 선택해주세요');return;}
   if(!modemItems.length){toast('박스를 하나 이상 추가해주세요');return;}
-  window.print();
+
+  // 인쇄용 HTML 생성
+  var w=selectedWorker;
+  var now=new Date();
+  var ds=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일 '+
+         String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  var total=modemItems.reduce(function(s,x){return s+x.qty;},0);
+
+  // 부자재 수집
+  var subRows=Array.from(document.querySelectorAll('#subList .sub-row'));
+  var subHTML='';
+  subRows.forEach(function(r){
+    var inputs=r.querySelectorAll('input');
+    var sn=(inputs[0]&&inputs[0].value.trim())||'';
+    var sq=parseInt((inputs[1]&&inputs[1].value)||0)||0;
+    if(sn) subHTML+='<tr><td>'+esc(sn)+'</td><td>'+sq+'EA</td></tr>';
+  });
+
+  var memo=document.getElementById('memo').value.trim();
+
+  var html='<div id="printBox" style="font-family:Apple SD Gothic Neo,Malgun Gothic,sans-serif;font-size:13px;color:#111;background:#fff;padding:20px;width:360px">'+
+    '<div style="text-align:center;font-size:17px;font-weight:900;border-bottom:2px solid #1d4ed8;padding-bottom:8px;margin-bottom:12px;color:#1d4ed8">⚡ AMI 자재 인수인계서</div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:10px">'+
+      '<tr><td style="padding:4px 6px;font-weight:700;width:70px">일시</td><td style="padding:4px 6px">'+ds+'</td></tr>'+
+      '<tr style="background:#f0f4ff"><td style="padding:4px 6px;font-weight:700">수령자</td><td style="padding:4px 6px;font-weight:900;font-size:15px">'+esc(w.name)+'</td></tr>'+
+      '<tr><td style="padding:4px 6px;font-weight:700">직책</td><td style="padding:4px 6px">'+esc(w.role)+'</td></tr>'+
+    '</table>'+
+
+    '<div style="font-weight:800;margin:10px 0 6px;font-size:13px;color:#444">■ 모뎀 박스</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+      '<thead><tr style="background:#1d4ed8;color:#fff">'+
+        '<th style="padding:5px;text-align:left">품명</th>'+
+        '<th style="padding:5px;width:70px">박스번호</th>'+
+        '<th style="padding:5px;width:40px">수량</th>'+
+      '</tr></thead><tbody>'+
+      modemItems.map(function(it){
+        return '<tr style="border-bottom:1px solid #e4e6eb">'+
+          '<td style="padding:5px">'+esc(it.name)+'</td>'+
+          '<td style="padding:5px;text-align:center">'+esc(it.boxno||'-')+'</td>'+
+          '<td style="padding:5px;text-align:center">'+it.qty+'</td>'+
+        '</tr>';
+      }).join('')+
+      '<tr style="background:#f0f4ff;font-weight:900">'+
+        '<td style="padding:5px" colspan="2">합계</td>'+
+        '<td style="padding:5px;text-align:center">'+total+'EA</td>'+
+      '</tr>'+
+    '</tbody></table>'+
+
+    (subHTML?'<div style="font-weight:800;margin:10px 0 6px;font-size:13px;color:#444">■ 부자재</div>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+        '<thead><tr style="background:#374151;color:#fff"><th style="padding:5px;text-align:left">품명</th><th style="padding:5px;width:60px">수량</th></tr></thead>'+
+        '<tbody>'+subHTML+'</tbody></table>':'')+
+
+    (memo?'<div style="font-weight:800;margin:10px 0 6px;font-size:13px;color:#444">■ 특이사항</div>'+
+      '<div style="border:1px solid #e4e6eb;border-radius:6px;padding:8px;font-size:12px">'+esc(memo)+'</div>':'')+
+
+    '<div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px">'+
+      '<div style="text-align:center;border-top:1px solid #333;padding-top:6px">인수자 서명</div>'+
+      '<div style="text-align:center;border-top:1px solid #333;padding-top:6px">인도자 서명</div>'+
+    '</div>'+
+  '</div>';
+
+  // 임시 DOM에 추가 후 캡처
+  var tmp=document.createElement('div');
+  tmp.style.cssText='position:fixed;left:-9999px;top:0;z-index:-1';
+  tmp.innerHTML=html;
+  document.body.appendChild(tmp);
+  var pb=tmp.querySelector('#printBox');
+
+  toast('📷 이미지 생성 중...');
+  html2canvas(pb,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false}).then(function(canvas){
+    document.body.removeChild(tmp);
+    var dataUrl=canvas.toDataURL('image/png');
+    var fname='인수인계_'+esc(w.name)+'_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.png';
+
+    // Web Share API (모바일 카카오톡 공유 등)
+    if(navigator.share&&navigator.canShare){
+      canvas.toBlob(function(blob){
+        var file=new File([blob],fname,{type:'image/png'});
+        if(navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'AMI 자재 인수인계'}).catch(function(){});
+        } else {
+          // 공유 불가시 다운로드
+          var a=document.createElement('a');a.href=dataUrl;a.download=fname;a.click();
+        }
+      });
+    } else {
+      // PC/구형 브라우저: 다운로드
+      var a=document.createElement('a');a.href=dataUrl;a.download=fname;a.click();
+    }
+    toast('✅ 저장 완료!');
+  }).catch(function(e){
+    document.body.removeChild(tmp);
+    toast('❌ 이미지 생성 실패');
+    console.error(e);
+  });
 }
 
 function resetAll(){

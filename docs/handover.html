@@ -354,26 +354,47 @@ function showOcrRaw(text){
 // ── 파싱: QR 텍스트 또는 OCR 텍스트 → 필드 채우기 ──
 function parseAndFill(raw, src){
   var name='', boxno='', qty=0;
-  var lines=raw.split(/[\n\r]+/).map(function(s){return s.trim();}).filter(Boolean);
 
+  // OCR 오인식 보정: O↔0, I↔1, S↔5, B↔8
+  var corrected = raw.toUpperCase();
+
+  // ── 박스번호 추출 (우선순위 순) ──
+
+  // 1) "BOX No: 004868" 형식 — 공백·콜론·OCR오류 모두 허용
+  //    B0X / BOX / B 0X 등 + No/N0/NO + 숫자6자리
+  var bm = corrected.match(/B[0O]X\s*N[0O][\s:：]*(\d{4,6})/);
+  if(bm) boxno = bm[1];
+
+  // 2) "박스번호: 004868" 한글 형식
+  if(!boxno){
+    var km = corrected.match(/박스\s*번호\s*[:\s：]\s*(\d{4,6})/);
+    if(km) boxno = km[1];
+  }
+
+  // 3) 6자리 연속 숫자 (004868 등) — 다른 숫자보다 길면 박스번호일 가능성 높음
+  if(!boxno){
+    var nm = corrected.match(/\b(\d{6})\b/);
+    if(nm) boxno = nm[1];
+  }
+
+  // 4) 4~5자리 숫자 (6777 등 짧은 박스번호)
+  if(!boxno){
+    var sm = corrected.match(/\b(\d{4,5})\b/);
+    if(sm) boxno = sm[1];
+  }
+
+  // 수량
+  var lines = raw.split(/[\n\r]+/).map(function(s){return s.trim();}).filter(Boolean);
   lines.forEach(function(l){
-    // 콜론 기준 key:value 파싱
-    var m=l.match(/^([^:：]+)[：:]\s*(.+)$/);
-    if(m){
-      var k=m[1].replace(/\s/g,'');
-      var v=m[2].trim();
-      if(/품명|품목|명칭/.test(k)) name=v;
-      else if(/수량|QTY/.test(k)){var n=parseInt(v);if(n>0)qty=n;}
-      else if(/BOXNo|박스번호|BOX/.test(k)) boxno=v.replace(/[^A-Za-z0-9가-힣]/g,'');
-      else if(/공고번호/.test(k)) {if(!boxno) boxno=v;}
-    }
-    // # BOX No:004868 형식
-    var bm=l.match(/#\s*BOX\s*No[:\s]*([A-Za-z0-9]+)/i);
-    if(bm) boxno=bm[1];
-    // 수량 단독: "40 EA" or "40EA"
-    var qm=l.match(/^(\d+)\s*EA$/i);
+    var qm = l.match(/^(\d+)\s*EA$/i);
     if(qm&&!qty) qty=parseInt(qm[1]);
+    var m = l.match(/수량\s*[:\s]\s*(\d+)/i);
+    if(m&&!qty) qty=parseInt(m[1]);
   });
+
+  // OCR 원본도 표시 (디버깅용)
+  document.getElementById('ocrRaw').textContent = '인식: '+raw.substring(0,120);
+  document.getElementById('ocrRaw').style.display = '';
 
   // 박스번호가 인식되면 MAC 조회 → showMacPanel에서 나머지 처리
   if(boxno){

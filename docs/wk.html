@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<title>원강정보통신 일일작업현황</title>
+<title>원강정보통신 | 간편 작업지도</title>
 <style>
   :root{--navy:#14213d;--red:#c8102e;--ink:#1a1a1a;--line:#e3e5ea;--bg:#eef0f3;
     --kakao:#FEE500;--kakaoInk:#3a1d1d;--tmap:#2c6ef2;--road:#127a3a;
@@ -177,87 +177,65 @@
   .viewer{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:14px;}
   .viewer.on{display:flex;} .viewer img{max-width:100%;max-height:100%;border-radius:8px;}
   .leaflet-tooltip{font-weight:800;font-size:12px;}
+:root{--navy:#183e64;--red:#2563eb;--ink:#172b42;--line:#e2e8f0;--bg:#f5f7fa;--go:#d97706;--done:#16a34a;--move:#2563eb;--undone:#dc2626;--road:#216d53;--muted:#738195}
+body{font-size:14px;background:var(--bg)}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}button{transition:background .15s,border-color .15s}#appTop{padding:0;background:#fff;border-bottom:1px solid var(--line);position:relative;z-index:600}header{height:68px;margin:0;padding:0 24px;gap:20px}.lg-mark{width:42px;max-height:42px;object-fit:contain}.lg-txt b{font-size:17px;font-weight:800;letter-spacing:-.5px}.lg-txt span{font-size:11px;font-weight:500;color:var(--muted);margin-top:4px}.header-right{display:flex;gap:10px;align-items:center;margin-left:auto}.date-pill{font-size:12px;color:var(--muted);margin-right:4px}.tabs{margin:0;padding:3px;background:#f1f5f9;border-radius:9px;gap:2px}.tabs button{font-size:13px;padding:9px 18px;border-radius:7px;color:#64748b;white-space:nowrap}.tabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 4px #17345214}.ui-btn{border:1px solid var(--line);background:#fff;border-radius:8px;color:var(--navy);padding:9px 12px;font-size:12px;font-weight:700;white-space:nowrap;min-height:38px}.ui-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}.toolbar{display:flex;gap:18px;align-items:center;padding:12px 24px;background:#fff;border-top:1px solid #f3f5f7}.searchbox{display:flex;gap:9px;align-items:center;background:#f5f7fa;border:1px solid #e7ecf1;border-radius:9px;padding:0 12px;max-width:340px;flex:1;min-width:0;color:#8a97a8}.searchbox input{height:38px;width:100%;border:0;outline:0;background:none;color:var(--ink);font-size:13px;min-width:0}.searchbox button{border:0;background:none;color:#738195;font-size:18px;padding:2px 4px}.filters{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}.filter{border:0;background:none;padding:9px 13px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;color:#718096}.filter.on{background:#eaf2ff;color:#245bc3}.toolbar-end{margin-left:auto;font-size:12px;color:#8491a3;white-space:nowrap}.saved-dot{display:inline-block;width:6px;height:6px;background:#16a34a;border-radius:50%;margin-right:5px}body.mapmode #pMap{display:grid;grid-template-columns:286px minmax(0,1fr) 326px;grid-template-rows:54px minmax(0,1fr);gap:0;top:var(--topH,132px);background:#fff}.subseg{grid-column:2;grid-row:1;margin:0;padding:8px 16px;background:#fff;gap:5px;z-index:510;border-bottom:1px solid var(--line)}.subseg button{border:0;border-radius:7px;background:#f3f6fa;padding:8px 13px;font-size:12px;color:#7a8796}.subseg button.on{background:#eaf2ff;color:#245bc3}.subseg .sum{font-size:11px;line-height:1.6;color:#738195;font-weight:500}.subseg .sum em{color:var(--navy);font-weight:800}.stage{grid-column:2;grid-row:2;border:0;position:relative;overflow:hidden}#map{background:#e9eef1}.maphint{left:14px;top:14px;background:#fffffff2;color:#66768a;border:1px solid #e3e9ef;box-shadow:0 2px 6px #1734520a;border-radius:7px;font-size:11px;padding:8px 10px;max-width:calc(100% - 84px)}.fabs{right:14px;bottom:46px;gap:7px}.fab{width:40px;height:40px;border-radius:9px;box-shadow:0 2px 8px #18345220;border:1px solid #dce4ed;font-size:18px}.fab.on{background:#eaf2ff;border-color:#2563eb}.maplegend{position:absolute;bottom:16px;left:14px;z-index:500;background:#fffffff0;display:flex;gap:12px;padding:8px 11px;border:1px solid #e3e9ef;border-radius:7px;font-size:10px;color:#64748b;pointer-events:none}.legend-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}.mpin{width:32px;height:32px;box-shadow:0 2px 8px #16345235;background:#2563eb;border:3px solid #fff}.mpin.s-done{background:var(--done)}.mpin.s-undone{background:var(--undone);border-color:#fff;color:#fff}.mpin.sel{transform:scale(1.14);box-shadow:0 0 0 5px #2563eb26,0 2px 8px #16345240}.sidebar{grid-column:1;grid-row:1/3;display:flex;flex-direction:column;min-height:0;background:#fff;border-right:1px solid var(--line)}.sidehead{padding:20px 18px 15px;display:flex;align-items:center;justify-content:space-between}.sidehead h2{font-size:14px;margin:0;font-weight:800}.sidehead span{font-size:11px;color:#8a97a8}.side-list{overflow-y:auto;flex:1;min-height:0;padding:0 10px 12px}.side-item{width:100%;display:flex;align-items:flex-start;gap:10px;text-align:left;padding:13px 10px;border:1px solid transparent;background:#fff;border-radius:10px;margin:3px 0;color:var(--ink)}.side-item:hover{background:#f7f9fc}.side-item.sel{background:#f0f6ff;border-color:#bfd6ff}.side-num{width:29px;height:29px;background:#edf2f8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#667c97;font-size:12px;font-weight:800;flex-shrink:0}.side-item.sel .side-num{background:#2563eb;color:#fff}.side-info{min-width:0;flex:1}.side-line{display:flex;align-items:center;justify-content:space-between;gap:5px}.side-code{font-size:11px;font-weight:700;color:#8090a3}.state-badge{font-size:10px;font-weight:700;color:#728197;background:#f0f3f7;border-radius:5px;padding:3px 5px}.state-badge.go{color:#a76708;background:#fff6e6}.state-badge.done{color:#14804a;background:#e9f8ef}.state-badge.move{color:#2563eb;background:#eaf2ff}.state-badge.undone{color:#bf3e3e;background:#fff0f0}.side-info b{display:block;font-size:13px;margin-top:6px;line-height:1.45;font-weight:750;overflow-wrap:anywhere}.side-meta{font-size:10px;color:#8996a8;margin-top:5px}.sidefooter{padding:14px 18px;border-top:1px solid var(--line);font-size:11px;color:#8491a3}.progress-track{height:4px;background:#edf1f6;border-radius:3px;margin:10px 0 8px;overflow:hidden}.progress-track i{height:100%;display:block;background:#16a34a;border-radius:3px}.progress-label{display:flex;justify-content:space-between}.dock{grid-column:3;grid-row:1/3;max-height:none;border-left:1px solid var(--line);padding:18px;overflow:auto}.detail-caption{font-size:10px;font-weight:700;color:#92a0b1;letter-spacing:1px;margin-bottom:16px}.jchips{display:none}.jcard .hd{gap:8px;margin-bottom:18px}.jcard .hd .n{width:34px;height:34px;border-radius:9px;background:#2563eb;font-size:14px}.jcard .hd .c{font-size:16px;letter-spacing:.5px}.wtag{font-size:10px!important;border:0;padding:5px 8px!important;border-radius:6px;font-weight:700;white-space:nowrap}.jcard .ad{font-size:19px;line-height:1.5;letter-spacing:-.5px;color:var(--ink);font-weight:800;overflow-wrap:anywhere}.jcard .jb{font-size:11px;color:#7b8b9f;line-height:1.7;margin-top:5px}.address-copy{border:0;background:none;padding:8px 0;color:#507baa;font-size:11px;min-height:32px;font-weight:700}.record-mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.record-mini span{font-size:11px;padding:5px 8px;border-radius:6px;background:#f4f7fa;color:#64748b}.detail-block{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}.detail-block summary{font-size:12px;font-weight:750;cursor:pointer;color:#65758b}.detail-block .dt{font-size:12px;line-height:1.8;color:#738195;margin:10px 0}.detail-block .rec{background:#f4f7fa;font-size:11px;color:#64748b;margin-top:4px;border-radius:5px}.jcard .status{border:0;padding:0;gap:4px;display:grid;grid-template-columns:repeat(4,1fr);margin:16px 0 0}.chip{padding:11px 0;border:1px solid var(--line);background:#fff;color:#7d8c9f;font-size:11px;font-weight:700;border-radius:7px;min-height:38px}.chip.on-go{background:#fff5e5;border-color:#e7b363;color:#a56708}.chip.on-done{background:#e9f8ef;border-color:#73c397;color:#14804a}.chip.on-move{background:#eaf2ff;border-color:#91b7f3;color:#2563eb}.chip.on-undone{background:#fff0f0;border-color:#efabab;color:#bf3e3e}.navigation-label{font-size:11px;font-weight:700;color:#8a97a8;margin:18px 0 8px}.btn4{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.btn4 button{font-size:12px;padding:11px 4px;border-radius:8px;min-height:40px;font-weight:700;border:1px solid var(--line)}.b-k{background:#fff5ba;color:#665307;border-color:#efe1a0!important}.b-t{background:#edf4ff;color:#2963b7;border-color:#d8e6fd!important}.b-d{background:#fff;color:#61758d}.b-e{background:var(--navy);color:#fff;border-color:var(--navy)!important}.detail-actions{display:flex;gap:8px;margin-top:7px}.detail-actions button{flex:1;border:1px solid var(--line);border-radius:8px;background:#fff;color:#61758d;padding:10px 5px;font-size:12px;min-height:38px}.record-btn{display:block;width:100%;margin-top:16px;padding:12px;border:0;border-radius:8px;background:var(--navy);color:#fff;font-size:13px;font-weight:700;min-height:44px}.local-note{font-size:10px;line-height:1.7;color:#98a4b3;text-align:center;margin-top:10px}.dockbar{display:none}.empty{font-size:12px;color:#8491a3;line-height:1.8;padding:24px 10px}.mobile-only{display:none}.sheet-handle{display:none}#pList{max-width:1160px;margin:auto;padding:24px 24px 44px}#list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{border-radius:12px;padding:18px;margin:0;box-shadow:none}.num{background:#2563eb;width:32px;height:32px;border-radius:9px;font-size:14px}.numcol{flex-basis:34px}.code{font-size:10px;color:#8190a5}.list-address{font-size:17px;font-weight:800;color:var(--ink);margin:5px 0;line-height:1.5}.list-sub{font-size:11px;color:#8a97a8;line-height:1.6}.list-status{margin-left:auto}.list-actions{display:flex;gap:7px;border-top:1px solid var(--line);padding-top:13px;margin-top:14px}.list-actions button{flex:1}.hint{background:#eff6ff;border-color:#dbeafe;color:#617d9f;font-size:12px;border-radius:9px;padding:12px}.setup{border-radius:8px;font-size:12px;padding:9px 12px;margin:0 0 12px}#globalNotice:not(:empty){padding:8px 18px;color:#946b1b;background:#fff9e8;font-size:11px}#globalNotice:empty{display:none}.overview{display:flex;align-items:center;justify-content:space-between;margin:0 0 18px;gap:16px}.overview h1{font-size:20px;margin:0}.overview p{color:#8996a8;font-size:12px;margin:7px 0 0}.report,.matsum{border-radius:12px;box-shadow:none;padding:20px;margin-top:18px}.report h2,.matsum h2{font-size:15px}.report p{font-size:12px;color:#7a899c}.copybtn{font-size:13px;border-radius:8px;padding:12px}pre#out{font-size:12px;border-radius:8px;max-height:250px;overflow:auto}.matsum .core{border-radius:8px}.matsum .cbl{flex-wrap:wrap}.note{font-size:11px}.modal{align-items:center;padding:18px;background:#172b4266;backdrop-filter:blur(2px)}.mcard{border-radius:16px;max-width:440px;padding:24px;max-height:88dvh;box-shadow:0 16px 60px #13264033}.mcard h3{font-size:18px}.mcard .msub{font-size:11px;line-height:1.7}.mcard label{font-size:12px;color:#64748b}.mcard input{border-width:1px;border-radius:8px;font-size:14px;padding:12px;background:#fbfcfe}.seg button{border-width:1px;border-radius:7px;font-size:12px}.mbtns button{border-radius:8px;font-size:13px}.utility-card{max-width:580px}.utility-card .report,.utility-card .matsum{padding:0;border:0;margin-top:16px}.utility-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.utility-top h3{margin:0}.utility-tabs{display:flex;gap:6px;margin-top:20px}.utility-tabs button{flex:1;background:#f4f7fa;border:0;border-radius:7px;padding:10px;color:#718096;font-size:12px;font-weight:700}.utility-tabs button.on{background:#eaf2ff;color:#245bc3}.utility-footer{margin-top:20px;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:8px;justify-content:space-between}.danger-btn{color:#ad5555;background:#fff;border:1px solid #eedbdb}.leaflet-control-attribution{font-size:9px!important;background:#ffffffd9!important;color:#8090a1!important}#toast{z-index:15000;background:var(--navy);border-radius:9px;font-size:12px;padding:12px 18px}#helpText{font-size:12px;color:#64748b;line-height:1.9}#helpText b{color:var(--navy)}.close-panel{display:none}.map-error{margin:50px;text-align:center;color:#738195;font-size:13px}.dwgmsg{font-size:13px}.top-more{display:none}
+@media(min-width:1600px){body.mapmode #pMap{grid-template-columns:310px minmax(0,1fr) 360px}.dock{padding:24px}.sidehead{padding:24px 20px 18px}.side-item{padding:16px 12px}.jcard .ad{font-size:22px}}
+@media(max-width:1100px) and (min-width:761px){body.mapmode #pMap{grid-template-columns:250px minmax(0,1fr)}.dock{position:absolute;right:14px;bottom:14px;width:290px;max-height:60%;z-index:550;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px #18345222;padding:14px}.detail-caption{margin-bottom:8px}.jcard .hd{margin-bottom:10px}.jcard .ad{font-size:16px}.detail-block{display:none}.local-note{display:none}.fabs{top:68px;bottom:auto}.toolbar-end{display:none}.toolbar{gap:10px}.searchbox{max-width:260px}.filter{padding:9px 8px}.date-pill{display:none}}
+@media(max-width:760px){header{height:60px;padding:0 14px;gap:8px}.logo{gap:7px}.lg-mark{width:30px}.lg-txt b{font-size:14px}.lg-txt span{font-size:9px;margin-top:3px}.header-right{gap:6px}.date-pill{display:none}.header-report{display:none}.top-more{display:block}.tabs button{font-size:11px;padding:8px 10px}.tabs{padding:2px}.toolbar{padding:9px 12px 10px;gap:7px;flex-wrap:wrap}.searchbox{flex-basis:100%;max-width:none}.searchbox input{height:35px;font-size:12px}.filters{width:100%;justify-content:space-between;gap:3px}.filter{padding:7px 9px;font-size:11px}.toolbar-end{display:none}body.mapmode #pMap{display:flex;flex-direction:column;top:var(--topH,155px)}.subseg{flex:0 0 45px;padding:6px 12px;gap:4px}.subseg button{font-size:11px;padding:7px 9px}.subseg .sum{font-size:10px}.stage{flex:1;min-height:120px}.mobile-only{display:block}.sidebar{display:none}.sidebar.open{display:flex;position:absolute;left:12px;right:12px;top:52px;bottom:18px;z-index:580;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 30px #18345222;overflow:hidden}.close-panel{display:block}.sidehead{padding:16px}.side-item{padding:12px}.side-info b{font-size:14px}.maphint{top:10px;left:10px;font-size:10px;padding:6px 8px;max-width:calc(100% - 60px)}.maplegend{bottom:10px;left:10px;font-size:9px;gap:8px;padding:6px 8px}.fabs{right:10px;bottom:35px;gap:5px}.fab{width:36px;height:36px;font-size:17px}.dock{flex:0 0 auto;max-height:43dvh;overflow:auto;border-left:0;border-top:1px solid var(--line);padding:0 14px calc(10px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;box-shadow:0 -3px 14px #1834520d;z-index:550;margin-top:-10px}.sheet-handle{display:block;width:32px;height:4px;background:#dce4ed;border-radius:3px;margin:8px auto 10px}.detail-caption{display:none}.jcard .hd{margin-bottom:8px}.jcard .hd .n{width:27px;height:27px;font-size:12px}.jcard .hd .c{font-size:13px}.jcard .ad{font-size:16px;line-height:1.45}.jcard .jb{font-size:10px;margin-top:2px}.jcard .status{margin-top:10px}.chip{padding:8px 0;min-height:36px;font-size:11px}.address-copy{position:absolute;right:14px;top:42px;font-size:10px;padding:4px 0;min-height:26px}.jcard{position:relative}.record-mini{display:none}.navigation-label{display:none}.btn4{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:10px}.btn4 button{font-size:11px;padding:9px 1px;min-height:36px}.detail-actions{display:none}.record-btn{display:none}.detail-block{margin-top:10px;padding-top:9px}.detail-block summary{font-size:11px}.detail-block .dt{font-size:11px;margin:8px 0}.local-note{display:none}#pList{padding:18px 12px 30px}#list{grid-template-columns:1fr;gap:10px}.card{padding:14px}.overview h1{font-size:18px}.overview p{font-size:11px}.list-address{font-size:16px}.modal{align-items:flex-end;padding:0}.mcard{border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));max-height:88dvh}.utility-card{max-width:none}.report,.matsum{padding:16px}.map-error{margin:40px 18px}.empty{padding:14px 8px}}
+@media(max-height:650px) and (max-width:760px){.jcard .jb,.detail-block{display:none}.dock{max-height:45dvh}.jcard .status{margin-top:7px}.subseg{flex-basis:39px}.maphint{display:none!important}}
+
 </style>
 </head>
 <body>
 <div id="appTop">
-  <header>
-    <div class="logo">
-      <img class="lg-mark" src="img/logo.png" alt="W.K" onerror="this.style.display='none'">
-      <div class="lg-txt"><b>원강정보통신</b><span>일일작업현황</span></div>
-    </div>
-    <div class="d" id="today"></div>
-  </header>
-  <div class="tabs">
-    <button id="tabList" class="on" onclick="showTab('list')">📋 작업현황</button>
-    <button id="tabMap" onclick="showTab('map')">🗺️ 작업지도</button>
-  </div>
-</div>
+<header><div class="logo"><img class="lg-mark" src="img/logo.png" alt="W.K" onerror="this.style.display='none'"><div class="lg-txt"><b>원강정보통신</b><span>현장 작업을 한눈에</span></div></div><div class="header-right"><span id="today" class="date-pill"></span><div class="tabs" role="tablist" aria-label="보기 방식"><button id="tabMap" class="on" role="tab" aria-selected="true" onclick="showTab('map')">작업지도</button><button id="tabList" role="tab" aria-selected="false" onclick="showTab('list')">작업목록</button></div><button class="ui-btn primary header-report" onclick="openUtility('report')">보고 · 자재</button><button class="ui-btn top-more" onclick="openUtility('report')" aria-label="보고, 자재와 도움말">메뉴</button></div></header>
+<div class="toolbar"><div class="searchbox"><span aria-hidden="true">⌕</span><input id="jobSearch" type="search" placeholder="지시서 번호 · 주소 검색" aria-label="지시서 번호 또는 주소 검색" oninput="searchJobs(this.value)"><button id="clearSearch" onclick="clearSearch()" aria-label="검색 지우기" hidden>×</button></div><div class="filters" role="group" aria-label="작업 상태 필터"><button class="filter on" data-filter="all" aria-pressed="true" onclick="setFilter('all')">전체</button><button class="filter" data-filter="todo" aria-pressed="false" onclick="setFilter('todo')">완료 제외</button><button class="filter" data-filter="go" aria-pressed="false" onclick="setFilter('go')">작업중</button><button class="filter" data-filter="done" aria-pressed="false" onclick="setFilter('done')">완료</button><button class="filter" data-filter="undone" aria-pressed="false" onclick="setFilter('undone')">미완료</button></div><div class="toolbar-end"><span class="saved-dot"></span>기록은 이 브라우저에 저장</div></div><div id="globalNotice" role="status"></div></div>
 
 <!-- ===================== 탭1 : 작업현황 ===================== -->
-<main id="pList">
-  <div class="setup" id="setup">⚠️ 카카오 키/도메인 확인 필요 — 도로명 자동표시가 꺼진 상태입니다.</div>
-
-  <div class="hint">
-    🟢 <b>초록색 = 도로명(신주소)</b>, 누르면 복사 · 회색 = <b>지번(도면 대조용)</b><br>
-    🟧전주고소 🟦맨홀 ⬜구내 = <b>작업구분</b> · <b>📍지도</b> = 작업지도에서 위치 · <b>📐도면</b> = 지시서 도면
-  </div>
-
-  <div id="list"></div>
-
-  <div class="report">
-    <h2>📋 팀장님 카톡 보고</h2>
-    <p>상태(작업중/완료/이동중) 선택한 건만 복사돼요. 지도 탭과 상태가 같이 움직여요.</p>
-    <button class="copybtn" onclick="copyReport()">보고글 복사하기</button>
-    <pre id="out"></pre>
-  </div>
-
-  <div class="matsum" id="matsum"></div>
-
-  <div class="note"><b>확인</b> — 작업구분은 도면 함체(RN) 위치로 자동판정, ⚠️는 현장확인 요망. 자재는 러프 추정(포설길이 기록하면 그 값 반영), 공무 협의 후 확정. 시골 지번은 도로명 없음(정상).</div>
-</main>
+<main id="pList"><div class="overview"><div><h1>작업목록</h1><p id="listCount">작업을 불러오는 중입니다</p></div><button class="ui-btn" onclick="openUtility('report')">보고 · 자재</button></div><div class="setup" id="setup">도로명 조회 서비스를 사용할 수 없습니다. 지번 기준으로 위치를 조회합니다.</div><div id="list"></div><div class="note">작업구분과 케이블 길이는 현장 확인이 필요합니다. 상세 내용과 도면은 작업을 선택하면 볼 수 있습니다.</div></main>
 
 <!-- ===================== 탭2 : 작업지도 ===================== -->
-<section id="pMap">
-  <div class="subseg">
-    <button id="sgMap" class="on" onclick="mapMode('map')">🗺️ 실제지도</button>
-    <button id="sgDwg" onclick="mapMode('dwg')">📐 도면</button>
+<section id="pMap" aria-label="작업지도"><aside class="sidebar" id="sidebar" aria-label="지도 작업목록"><div class="sidehead"><h2>오늘의 작업</h2><span id="sideCount"></span><button class="ui-btn close-panel" onclick="toggleSidebar(false)">닫기</button></div><div class="side-list" id="sideList"></div><div class="sidefooter"><div class="progress-label"><span>작업 진행</span><b id="progressLabel"></b></div><div class="progress-track"><i id="progressBar"></i></div><span>목록과 지도 상태가 함께 반영됩니다</span></div></aside>
+  <div class="subseg"><button class="mobile-only" id="mobileList" onclick="toggleSidebar()" aria-expanded="false" aria-controls="sidebar">목록</button>
+    <button id="sgMap" class="on" onclick="mapMode('map')"> 실제지도</button>
+    <button id="sgDwg" onclick="mapMode('dwg')"> 도면</button>
     <div class="sum" id="msum"></div>
   </div>
   <div class="stage">
     <div id="map"></div>
-    <div class="maphint" id="maphint">번호 핀 = 지시서 순번 · 지도 길게 누르면 지점 추가</div>
+    <div class="maphint" id="maphint">번호를 누르면 작업 상세가 열립니다</div>
     <div id="dwgv">
       <div class="dwgscroll" id="dwgscroll">
         <img id="dwgimg" alt="도면">
         <div class="dwgmsg" id="dwgmsg"></div>
       </div>
     </div>
-    <div class="fabs" id="fabs">
-      <button class="fab" id="fGps" onclick="locateMe()" title="내 위치">📍</button>
-      <button class="fab" id="fFit" onclick="fitAll()" title="전체 보기">⤢</button>
+    <div class="maplegend" id="maplegend"><span><i class="legend-dot" style="background:#2563eb"></i>작업전·이동</span><span><i class="legend-dot" style="background:#d97706"></i>작업중</span><span><i class="legend-dot" style="background:#16a34a"></i>완료</span><span><i class="legend-dot" style="background:#dc2626"></i>미완료</span></div><div class="fabs" id="fabs"><button class="fab" id="fAdd" onclick="setAddMode()" title="지점 추가" aria-label="지도에 지점 추가" aria-pressed="false">+</button>
+      <button class="fab" id="fGps" onclick="locateMe()" title="내 위치" aria-label="내 위치 찾기">◎</button>
+      <button class="fab" id="fFit" onclick="fitAll()" title="전체 보기" aria-label="표시 지점 전체 보기">⤢</button>
       <button class="fab" id="fZin" onclick="dwgZoom(1)" style="display:none">＋</button>
       <button class="fab" id="fZout" onclick="dwgZoom(-1)" style="display:none">－</button>
     </div>
   </div>
-  <div class="dock">
+  <aside class="dock" aria-label="선택 작업 상세"><div class="sheet-handle"></div><div class="detail-caption">선택한 작업</div>
     <div class="jchips" id="jchips"></div>
     <div class="jcard" id="jcard"></div>
     <div class="dockbar">
-      <button onclick="exportCSV()">📤 CSV 내보내기</button>
-      <button onclick="resetDay()">🧹 오늘기록 초기화</button>
+      <button onclick="exportCSV()"> CSV 내보내기</button>
+      <button onclick="resetDay()"> 오늘기록 초기화</button>
     </div>
-  </div>
+  </aside>
 </section>
 
+<div class="modal" id="mUtility" role="dialog" aria-modal="true" aria-labelledby="utilityTitle" onclick="if(event.target===this)closeUtility()"><div class="mcard utility-card"><div class="utility-top"><h3 id="utilityTitle">보고 · 자재 · 백업</h3><button class="ui-btn" onclick="closeUtility()">닫기</button></div><div class="utility-tabs"><button data-utility="report" onclick="utilityTab('report')">보고 복사</button><button data-utility="materials" onclick="utilityTab('materials')">자재 합산</button><button data-utility="help" onclick="utilityTab('help')">도움말</button></div><div id="reportBlock"><div class="report"><h2>팀장님 카톡 보고</h2><p>상태를 선택한 작업만 보고글에 포함됩니다. 복사 후 카카오톡에 직접 붙여넣어주세요.</p><button class="copybtn" onclick="copyReport()">보고글 복사하기</button><pre id="out"></pre></div></div><div id="materialBlock" hidden><div class="matsum" id="matsum"></div></div><div id="helpText" hidden><p><b>빠른 사용</b><br>1. 지시서 번호나 주소로 작업을 찾으세요.<br>2. 목록 또는 지도 번호를 눌러 작업을 선택하세요.<br>3. 길안내, 도면 확인, 작업 상태와 기록을 입력하세요.</p><p><b>지점 추가</b><br>지도 오른쪽 + 버튼을 누른 후 위치를 누르세요. 지도 길게 누르기 또는 오른쪽 클릭도 가능합니다.</p><p><b>기록과 백업</b><br>상태·포설·메모·사진은 현재 브라우저에만 저장됩니다. CSV에는 사진 수만 포함됩니다. 사진까지 보관하려면 전체 백업을 사용하세요. 백업에는 현장 주소와 사진이 포함되므로 안전하게 보관하세요.</p><p><b>위치 확인</b><br>주소 조회에 실패한 작업은 지도에 표시되지 않을 수 있습니다. 좌표 정확성은 현장과 도면으로 확인하세요. 작업구분과 자재 합산은 현장 검토 후 확정하세요.</p><button class="ui-btn danger-btn" onclick="resetDay()">현재 작업기록 초기화</button></div><div class="utility-footer"><button class="ui-btn" onclick="exportCSV()">CSV 내보내기</button><button class="ui-btn" onclick="exportBackup()">사진 포함 백업</button><button class="ui-btn" onclick="document.getElementById('backupFile').click()">백업 가져오기</button></div></div></div><input type="file" id="backupFile" accept="application/json,.json" hidden onchange="importBackup(event)">
 <!-- 기록 모달 (포설길이·케이블·사진) -->
-<div class="modal" id="mEdit" onclick="if(event.target===this)closeEdit()">
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="eTitle" id="mEdit" onclick="if(event.target===this)closeEdit()">
   <div class="mcard">
     <h3 id="eTitle">작업 기록</h3>
     <div class="msub" id="eSub"></div>
     <div id="eNameWrap"><label>지점 이름</label><input id="eName" placeholder="예: 추가 인입 전주"></div>
     <label>포설 길이 (m)</label>
-    <input id="eLen" type="number" inputmode="decimal" placeholder="예: 35">
+    <input id="eLen" min="0" step="0.1" type="number" inputmode="decimal" placeholder="예: 35">
     <label>케이블</label>
     <div class="seg" id="eCable">
       <button data-v="4C">4C</button><button data-v="8C">8C</button>
@@ -279,7 +257,7 @@
 
 <div id="rvwrap" style="display:none;position:fixed;inset:0;z-index:9999;background:#000;">
   <div style="position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(0,0,0,.72);color:#fff;z-index:2;">
-    <b style="font-size:15px;">🛰️ 로드뷰</b>
+    <b style="font-size:15px;"> 로드뷰</b>
     <span id="rvttl" style="font-size:13px;color:#cfd6de;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     <button onclick="closeRoad()" style="border:0;background:#c8102e;color:#fff;font-size:14px;font-weight:800;border-radius:9px;padding:8px 14px;">닫기 ✕</button>
   </div>
@@ -315,8 +293,8 @@
   function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
     clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1400);}
   function copyText(txt){
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('📋 복사됨')).catch(()=>toast('복사 실패'));}
-    else{const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('📋 복사됨');}catch(e){}a.remove();}}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast(' 복사됨')).catch(()=>toast('복사 실패'));}
+    else{const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast(' 복사됨');}catch(e){}a.remove();}}
   function copyRoad(no){const j=jobs[no-1];if(j.road)copyText(j.road);}
 
   function navKakao(no){const j=jobs[no-1];
@@ -339,7 +317,7 @@
     const show=id=>{msg.textContent='';_rv.setPanoId(id,pos);setTimeout(()=>_rv.relayout(),80);};
     _rvc.getNearestPanoId(pos,50,id=>{ if(id){show(id);return;}
       _rvc.getNearestPanoId(pos,200,id2=>{ if(id2){show(id2);return;}
-        msg.innerHTML='이 지점 200m 내 로드뷰가 없어요 (시골 전주·공터)<br><a href="https://map.kakao.com/link/roadview/'+lat+','+lng+'" style="color:#7fd0a0;font-weight:800">카카오맵 앱에서 열기 ▶</a>';});});}
+        msg.innerHTML='이 지점 200m 내 로드뷰가 없어요 (시골 전주·공터)<br><a href="https://map.kakao.com/link/roadview/'+lat+','+lng+'" style="color:#7fd0a0;font-weight:800">카카오맵 앱에서 열기 </a>';});});}
   function closeRoad(){document.getElementById('rvwrap').style.display='none';}
 
   function setStatus(no,key){const c=jobs[no-1].code,r=R(c);r.status=(r.status===key)?null:key;touch(c);saveDB();renderAll();}
@@ -366,16 +344,16 @@
     document.documentElement.style.setProperty('--topH',h+'px');if(map)map.invalidateSize();}});
 
   /* ---------- 탭1 렌더 ---------- */
-  function recTxt(r){const b=[];if(r.len)b.push(r.len+'m');if(r.cable)b.push(r.cable);if(r.photos&&r.photos.length)b.push('📷'+r.photos.length);return b.join(' ');}
+  function recTxt(r){const b=[];if(r.len)b.push(r.len+'m');if(r.cable)b.push(r.cable);if(r.photos&&r.photos.length)b.push(''+r.photos.length);return b.join(' ');}
   function renderList(){
     document.getElementById('list').innerHTML=jobs.map(j=>{
       const r=R(j.code), s=r.status;
       const chip=(k,l)=>`<button class="chip ${s===k?('on-'+k):''}" onclick="setStatus(${j.no},'${k}')">${l}</button>`;
-      const wtag=`<div class="wtag ${WCLS[j.work]}">${WLBL[j.work]}${j.warn?' <span class="w">⚠️확인</span>':''}</div>`;
+      const wtag=`<div class="wtag ${WCLS[j.work]}">${WLBL[j.work]}${j.warn?' <span class="w">확인</span>':''}</div>`;
       let roadEl;
-      if(j.road===null) roadEl=`<div class="roadbig load">🛣️ 도로명 불러오는 중…</div>`;
-      else if(j.road)   roadEl=`<div class="roadbig" onclick="copyRoad(${j.no})">🛣️ ${esc(j.road)}<span class="cp">📋 복사</span></div>`;
-      else              roadEl=`<div class="roadnone">⚠️ 도로명 없음 · 랜드마크로 확인</div>`;
+      if(j.road===null) roadEl=`<div class="roadbig load"> 도로명 불러오는 중…</div>`;
+      else if(j.road)   roadEl=`<div class="roadbig" onclick="copyRoad(${j.no})"> ${esc(j.road)}<span class="cp"> 복사</span></div>`;
+      else              roadEl=`<div class="roadnone"> 도로명 없음 · 랜드마크로 확인</div>`;
       const rt=recTxt(r);
       return `<div class="card">
         <div class="top">
@@ -389,14 +367,14 @@
           </div>
         </div>
         <div class="navrow">
-          <button class="nav k" onclick="navKakao(${j.no})">🗺️ 카카오맵</button>
-          <button class="nav t" onclick="navTmap(${j.no})">🚗 티맵</button>
-          <button class="nav r${j.lat?'':' off'}" onclick="navRoad(${j.no})">🛰️ 로드뷰</button>
+          <button class="nav k" onclick="navKakao(${j.no})"> 카카오맵</button>
+          <button class="nav t" onclick="navTmap(${j.no})"> 티맵</button>
+          <button class="nav r${j.lat?'':' off'}" onclick="navRoad(${j.no})"> 로드뷰</button>
         </div>
         <div class="subrow">
-          <button class="sub" onclick="goMap('${j.code}')">📍 지도</button>
-          <button class="sub" onclick="goDwg('${j.code}')">📐 도면</button>
-          <button class="sub" onclick="openEdit('${j.code}')">✏️ 포설·사진${r.len?` <span class="v">${r.len}m</span>`:''}</button>
+          <button class="sub" onclick="goMap('${j.code}')"> 지도</button>
+          <button class="sub" onclick="goDwg('${j.code}')"> 도면</button>
+          <button class="sub" onclick="openEdit('${j.code}')"> 포설·사진${r.len?` <span class="v">${r.len}m</span>`:''}</button>
         </div>
         <div class="status">${chip('go','작업중')}${chip('done','작업완료')}${chip('move','이동중')}${chip('undone','미완료')}</div>
       </div>`;
@@ -416,9 +394,9 @@
         <div class="big">${d.known?pad.toLocaleString()+'m':'—'}</div>
         <div class="sub">${d.known?`기록 ${d.known}m +여장 10%`:'포설길이 미기록'}${d.unk?` · 미확정 ${d.unk}건`:''}</div></div>`;}).join('');
     const w={}; jobs.forEach(j=>w[j.work]=(w[j.work]||0)+1);
-    const wc=`🟧전주 ${w['전주']||0} · 🟦맨홀 ${w['맨홀']||0} · ⬜구내 ${w['구내']||0}　|　고소차 필요 ${w['전주']||0}건`;
+    const wc=`전주 ${w['전주']||0} · 맨홀 ${w['맨홀']||0} · 구내 ${w['구내']||0}　|　고소차 필요 ${w['전주']||0}건`;
     const chk=CHK.map((n,i)=>`<button class="${chkState[i]?'on':''}" onclick="toggleChk(${i})">${chkState[i]?'✓ ':''}${n}</button>`).join('');
-    el.innerHTML=`<h2>📦 오늘 자재 합산 (${jobs.length}건)</h2>
+    el.innerHTML=`<h2> 오늘 자재 합산 (${jobs.length}건)</h2>
       <div class="lbl">케이블 (여장 10% 반영)</div>
       <div class="cbl">${cbl}</div>
       <div class="wc">${wc}</div>
@@ -530,7 +508,7 @@
       const r=R(j.code), s=r.status, rt=recTxt(r);
       const chip=(k,l)=>`<button class="chip ${s===k?('on-'+k):''}" onclick="setStatus(${j.no},'${k}')">${l}</button>`;
       box.innerHTML=`<div class="hd"><div class="n">${j.no}</div><div class="c">${j.code}</div>
-          <div class="wtag ${WCLS[j.work]}">${WLBL[j.work]}${j.warn?' <span class="w">⚠️</span>':''}</div></div>
+          <div class="wtag ${WCLS[j.work]}">${WLBL[j.work]}${j.warn?' <span class="w"></span>':''}</div></div>
         <div class="ad">${j.road?esc(j.road):esc(j.short)}</div>
         ${j.road?`<div class="jb">지번 ${esc(j.short)}</div>`:''}
         <div class="dt">${esc(j.detail)}</div>
@@ -538,15 +516,15 @@
         <div class="btn4">
           <button class="b-k" onclick="navKakao(${j.no})">카카오</button>
           <button class="b-t" onclick="navTmap(${j.no})">티맵</button>
-          <button class="b-d" onclick="${mmode==='dwg'?`mapMode('map');selectJob('${j.code}')`:`mapMode('dwg')`}">${mmode==='dwg'?'🗺️ 지도':'📐 도면'}</button>
-          <button class="b-e" onclick="openEdit('${j.code}')">✏️ 기록</button>
+          <button class="b-d" onclick="${mmode==='dwg'?`mapMode('map');selectJob('${j.code}')`:`mapMode('dwg')`}">${mmode==='dwg'?' 지도':' 도면'}</button>
+          <button class="b-e" onclick="openEdit('${j.code}')"> 기록</button>
         </div>
         <div class="status">${chip('go','작업중')}${chip('done','완료')}${chip('move','이동중')}${chip('undone','미완료')}</div>`;
     }else{
       const x=DB.extra.find(e=>e.id===sel);
       box.innerHTML=x?`<div class="hd"><div class="n" style="background:#7c3aed">＋</div><div class="c">${esc(x.name||'추가 지점')}</div></div>
-        <div class="dt">${esc([x.len?x.len+'m':'',x.cable,x.note,x.photos&&x.photos.length?'📷'+x.photos.length:''].filter(Boolean).join(' · ')||'기록 없음')}</div>
-        <div class="btn4" style="grid-template-columns:1fr 1fr"><button class="b-e" onclick="openEdit('${x.id}')">✏️ 기록</button>
+        <div class="dt">${esc([x.len?x.len+'m':'',x.cable,x.note,x.photos&&x.photos.length?''+x.photos.length:''].filter(Boolean).join(' · ')||'기록 없음')}</div>
+        <div class="btn4" style="grid-template-columns:1fr 1fr"><button class="b-e" onclick="openEdit('${x.id}')"> 기록</button>
         <button class="b-d" onclick="toggleExtra('${x.id}')">${x.done?'작업전으로':'완료 처리'}</button></div>`
         :`<div class="empty">번호를 누르면 지시서 내용·길안내·도면이 나와요</div>`;
     }
@@ -579,7 +557,7 @@
   }
   function closeEdit(){document.getElementById('mEdit').classList.remove('on');eId=null;eLL=null;}
   function saveEdit(){
-    const len=parseFloat(document.getElementById('eLen').value)||0, note=document.getElementById('eNote').value.trim();
+    const len=Math.max(0,parseFloat(document.getElementById('eLen').value)||0), note=document.getElementById('eNote').value.trim();
     const j=eId?byCode(eId):null;
     if(j){Object.assign(R(j.code),{len,note,cable:eCable,photos:ePhotos.slice()});touch(j.code);}
     else{
@@ -662,18 +640,86 @@
     if(KAKAO_KEY==='YOUR_KAKAO_JAVASCRIPT_KEY'){document.getElementById('setup').style.display='block';markManual();}
     else{
       const sc=document.createElement('script');
-      sc.src='//dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&libraries=services&autoload=false';
+      sc.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&libraries=services&autoload=false';
       sc.onload=initGeo; sc.onerror=()=>{document.getElementById('setup').style.display='block';markManual();};
       document.head.appendChild(sc);
     }
-    if(location.hash==='#map') showTab('map');
+    if(!sel&&jobs.length)sel=jobs[0].code;showTab(location.hash==='#list'?'list':'map');
   }
-  // ▼ jobs.js(오늘 작업목록)만 매일 교체 — 캐시 무시 로드
+/* 간편 지도 UI: 기존 DB 키와 기록 형식을 유지합니다. */
+let uiQuery='',uiFilter='all',addMode=false;
+const UISTAT={go:'작업중',done:'완료',move:'이동중',undone:'미완료'};
+function visibleJobs(){const q=uiQuery.trim().toLowerCase();return jobs.filter(j=>{
+  const status=R(j.code).status;
+  const ok=uiFilter==='all'||(uiFilter==='todo'&&status!=='done')||status===uiFilter;
+  return ok&&(!q||[j.no,j.code,j.short,j.jibun,j.road,j.detail,j.report].join(' ').toLowerCase().includes(q));
+});}
+function searchJobs(v){uiQuery=v;document.getElementById('clearSearch').hidden=!v;renderAll();}
+function clearSearch(){document.getElementById('jobSearch').value='';searchJobs('');document.getElementById('jobSearch').focus();}
+function setFilter(v){uiFilter=v;document.querySelectorAll('.filter').forEach(b=>{const on=b.dataset.filter===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);});renderAll();}
+function stateBadge(j){const s=R(j.code).status;return `<span class="state-badge ${s||''}">${UISTAT[s]||'작업전'}</span>`;}
+function chooseJob(code){selectJob(code);if(window.innerWidth<=760)toggleSidebar(false);}
+function toggleSidebar(force){const box=document.getElementById('sidebar');const on=typeof force==='boolean'?force:!box.classList.contains('open');box.classList.toggle('open',on);document.getElementById('mobileList').setAttribute('aria-expanded',on);}
+function renderSidebar(){
+  const shown=visibleJobs();document.getElementById('sideCount').textContent=`${shown.length} / ${jobs.length}건`;
+  document.getElementById('sideList').innerHTML=shown.map(j=>`<button class="side-item ${sel===j.code?'sel':''}" id="side_${esc(j.code)}" onclick="chooseJob('${esc(j.code)}')" aria-label="${j.no}번 ${esc(j.code)} ${esc(j.short)} ${UISTAT[R(j.code).status]||'작업전'}" aria-pressed="${sel===j.code}"><span class="side-num">${j.no}</span><span class="side-info"><span class="side-line"><span class="side-code">지시서 ${esc(j.code)}</span>${stateBadge(j)}</span><b>${esc(j.short)}</b><span class="side-meta">${esc(WLBL[j.work]||j.work)} · ${esc(j.core||'케이블 미확인')}${j.warn?' · 현장확인':''}${!j.lat&&j.road!==null?' · 좌표없음':''}</span></span></button>`).join('')+(mmode==='map'?DB.extra.map((x,i)=>`<button class="side-item ${sel===x.id?'sel':''}" onclick="chooseJob('${x.id}')"><span class="side-num">+</span><span class="side-info"><span class="side-line"><span class="side-code">추가 지점 ${i+1}</span><span class="state-badge ${x.done?'done':''}">${x.done?'완료':'작업전'}</span></span><b>${esc(x.name||'추가 지점')}</b><span class="side-meta">${esc(x.cable||'기록 대기')} · ${x.len||0}m</span></span></button>`).join(''):'');
+  if(!shown.length&&!DB.extra.length)document.getElementById('sideList').innerHTML='<div class="empty">검색 조건에 맞는 작업이 없습니다.<br>검색어나 상태 필터를 바꿔주세요.</div>';
+  const done=jobs.filter(j=>R(j.code).status==='done').length;
+  document.getElementById('progressBar').style.width=(jobs.length?done/jobs.length*100:0)+'%';
+  document.getElementById('progressLabel').textContent=`${done} / ${jobs.length}건 완료`;
+  document.getElementById('listCount').textContent=`전체 ${jobs.length}건 · 현재 ${shown.length}건 표시`;
+}
+function renderList(){
+  const shown=visibleJobs();document.getElementById('list').innerHTML=shown.map(j=>{
+    const r=R(j.code),rt=recTxt(r);return `<article class="card"><div class="top"><div class="numcol"><div class="num">${j.no}</div><div class="code">${esc(j.code)}</div></div><div class="info"><div class="side-line"><span class="wtag ${WCLS[j.work]}">${esc(WLBL[j.work]||j.work)}${j.warn?' · 현장확인':''}</span>${stateBadge(j)}</div><div class="list-address">${esc(j.short)}</div><div class="list-sub">${j.road?esc(j.road):j.road===null?'주소 조회 중':'도로명 없음 · 지번 또는 도면으로 확인'}</div><div class="record-mini"><span>${esc(j.mat||'케이블 미확인')}</span>${rt?`<span>${esc(rt)}</span>`:''}</div></div></div><div class="list-actions"><button class="ui-btn primary" onclick="goMap('${esc(j.code)}')">지도 · 상세보기</button><button class="ui-btn" onclick="goDwg('${esc(j.code)}')">도면</button><button class="ui-btn" onclick="openEdit('${esc(j.code)}')">작업 기록</button></div></article>`;
+  }).join('')||'<div class="empty">검색 조건에 맞는 작업이 없습니다.</div>';
+}
+function drawPins(){
+  if(!map)return;Object.values(jm).forEach(m=>map.removeLayer(m));Object.values(xm).forEach(m=>map.removeLayer(m));jm={};xm={};
+  visibleJobs().forEach(j=>{if(!j.lat)return;const s=R(j.code).status;const m=L.marker([+j.lat,+j.lng],{icon:pinIcon(j.no,(s?'s-'+s:'')+(sel===j.code?' sel':'')),zIndexOffset:sel===j.code?1000:0}).addTo(map);m.bindTooltip(`${j.no}. ${j.short}`,{direction:'top',offset:[0,-14]});m.on('click',()=>selectJob(j.code));jm[j.code]=m;});
+  DB.extra.forEach(x=>{const m=L.marker([x.lat,x.lng],{icon:pinIcon('+','ex'+(sel===x.id?' sel':''))}).addTo(map);m.bindTooltip(x.name||'추가 지점',{direction:'top',offset:[0,-14]});m.on('click',()=>selectJob(x.id));xm[x.id]=m;});
+}
+function renderDock(){
+  renderSidebar();if(tab!=='map')return;
+  const box=document.getElementById('jcard'),j=byCode(sel);
+  if(j){const r=R(j.code),s=r.status;
+    const chip=(k,l)=>`<button class="chip ${s===k?'on-'+k:''}" aria-pressed="${s===k}" onclick="setStatus(${j.no},'${k}')">${l}</button>`;
+    box.innerHTML=`<div class="hd"><div class="n">${j.no}</div><div class="c">${esc(j.code)}</div><span class="wtag ${WCLS[j.work]}">${esc(WLBL[j.work]||j.work)}${j.warn?' · 확인':''}</span></div><div class="ad">${esc(j.short)}</div><div class="jb">${j.road?esc(j.road):j.road===null?'도로명·좌표 조회 중…':j.lat?'도로명 없음 · 지번 기준 위치':'좌표 없음 · 도면으로 위치 확인'}</div><button class="address-copy" onclick="copyJobAddress('${esc(j.code)}')">주소 복사</button><div class="record-mini"><span>${esc(r.cable||j.core||'케이블 미확인')}</span><span>포설 ${r.len||0}m</span><span>사진 ${(r.photos||[]).length}장</span></div><div class="status">${chip('go','작업중')}${chip('done','완료')}${chip('move','이동중')}${chip('undone','미완료')}</div><div class="navigation-label">길안내 · 현장 확인</div><div class="btn4"><button class="b-k" onclick="navKakao(${j.no})">카카오맵</button><button class="b-t" onclick="navTmap(${j.no})">티맵</button><button class="b-d" onclick="${mmode==='dwg'?`mapMode('map');selectJob('${esc(j.code)}')`:`mapMode('dwg')`}">${mmode==='dwg'?'지도':'도면'}</button><button class="b-e" onclick="openEdit('${esc(j.code)}')">기록 · 사진</button></div><div class="detail-actions"><button onclick="navRoad(${j.no})">로드뷰</button><button onclick="fitAll()">표시 지점 전체</button></div><details class="detail-block"><summary>작업 지시 · 자재 상세</summary><div class="dt">${esc(j.detail)}${r.note?`<br>메모: ${esc(r.note)}`:''}</div><div class="rec">${esc(j.mat)}</div><button class="address-copy" onclick="navRoad(${j.no})">로드뷰 열기</button></details><div class="local-note">기록은 현재 브라우저에 저장됩니다.<br>기기 변경 · 사이트 데이터 삭제 전 백업해주세요.</div>`;
+  }else{const x=DB.extra.find(e=>e.id===sel);box.innerHTML=x?`<div class="hd"><div class="n">+</div><div class="c">${esc(x.name||'추가 지점')}</div></div><div class="ad">${x.len||0}m · ${esc(x.cable||'케이블 미선택')}</div><div class="dt">${esc(x.note||'메모 없음')} · 사진 ${(x.photos||[]).length}장</div><div class="btn4"><button class="b-e" onclick="openEdit('${x.id}')">기록 · 사진</button><button class="b-d" onclick="toggleExtra('${x.id}')">${x.done?'작업전으로':'완료 처리'}</button></div>`:'<div class="empty">목록이나 지도에서 작업을 선택하세요.<br>길안내 · 도면 · 작업 기록이 표시됩니다.</div>';}
+  renderSum();
+}
+function copyJobAddress(code){const j=byCode(code);if(j)copyText(j.road||j.jibun);}
+function renderSum(){const done=jobs.filter(j=>R(j.code).status==='done').length;const tot=jobs.reduce((a,j)=>a+(R(j.code).len||0),0)+DB.extra.reduce((a,x)=>a+(x.len||0),0);document.getElementById('msum').innerHTML=`완료 <em>${done}/${jobs.length}</em> · 포설 <em>${Math.round(tot*10)/10}m</em>`;const lost=jobs.filter(j=>j.road!==null&&!j.lat).length;document.getElementById('globalNotice').textContent=lost?`좌표를 찾지 못한 작업 ${lost}건은 지도에 표시되지 않습니다. 목록에서 선택해 도면을 확인하세요.`:'';}
+function renderAll(){const shown=visibleJobs();if((uiQuery||uiFilter!=='all')&&byCode(sel)&&!shown.some(j=>j.code===sel))sel=shown.length?shown[0].code:null;renderList();renderMatSum();drawPins();renderDock();renderSum();}
+function initMap(){
+  if(map)return;if(!window.L){document.getElementById('map').innerHTML='<div class="map-error">지도를 불러오지 못했습니다.<br>인터넷 연결을 확인한 후 새로고침해주세요.<br>작업목록과 기록은 사용할 수 있습니다.</div>';return;}
+  const v=DB.view||{lat:37.738,lng:127.047,z:14};map=L.map('map',{zoomControl:false,attributionControl:true}).setView([v.lat,v.lng],v.z);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(map);
+  L.control.zoom({position:'topright'}).addTo(map);
+  map.on('contextmenu',e=>openEdit(null,e.latlng));map.on('click',e=>{if(addMode){setAddMode(false);openEdit(null,e.latlng);}});
+  map.on('moveend',()=>{const c=map.getCenter();DB.view={lat:c.lat,lng:c.lng,z:map.getZoom()};saveDB();});drawPins();
+}
+function setAddMode(force){addMode=typeof force==='boolean'?force:!addMode;if(addMode&&mmode!=='map')mapMode('map');document.getElementById('fAdd').classList.toggle('on',addMode);document.getElementById('fAdd').setAttribute('aria-pressed',addMode);document.getElementById('maphint').textContent=addMode?'추가할 위치를 지도에서 눌러주세요. + 버튼으로 취소할 수 있어요.':'번호를 누르면 작업 상세가 열립니다';}
+function fitAll(){if(!map)return;const pts=visibleJobs().filter(j=>j.lat).map(j=>[+j.lat,+j.lng]).concat(DB.extra.map(x=>[x.lat,x.lng]));if(!pts.length){toast('표시할 좌표가 없습니다');return;}fitted=true;if(pts.length===1)map.setView(pts[0],17);else map.fitBounds(pts,{padding:[40,40],maxZoom:17});}
+function showTab(t){tab=t;document.getElementById('tabList').classList.toggle('on',t==='list');document.getElementById('tabMap').classList.toggle('on',t==='map');document.getElementById('tabList').setAttribute('aria-selected',t==='list');document.getElementById('tabMap').setAttribute('aria-selected',t==='map');document.body.classList.toggle('mapmode',t==='map');if(t==='map'){window.scrollTo(0,0);updateTopHeight();initMap();setTimeout(()=>{if(map){map.invalidateSize();if(!fitted)fitAll();}},60);renderDock();}}
+function updateTopHeight(){document.documentElement.style.setProperty('--topH',document.getElementById('appTop').getBoundingClientRect().bottom+'px');if(map&&tab==='map')map.invalidateSize();}
+function mapMode(m){mmode=m;document.getElementById('sgMap').classList.toggle('on',m==='map');document.getElementById('sgDwg').classList.toggle('on',m==='dwg');document.getElementById('dwgv').classList.toggle('on',m==='dwg');document.getElementById('maphint').style.display=m==='map'?'block':'none';document.getElementById('maplegend').style.display=m==='map'?'flex':'none';['fGps','fFit','fAdd'].forEach(id=>document.getElementById(id).style.display=m==='map'?'block':'none');['fZin','fZout'].forEach(id=>document.getElementById(id).style.display=m==='dwg'?'block':'none');if(m==='dwg'){setAddMode(false);if(!sel||!byCode(sel))sel=jobs.length?jobs[0].code:null;showDwg();}else setTimeout(()=>map&&map.invalidateSize(),60);renderDock();}
+function openUtility(mode){document.getElementById('mUtility').classList.add('on');utilityTab(mode||'report');}
+function closeUtility(){document.getElementById('mUtility').classList.remove('on');}
+function utilityTab(mode){document.querySelectorAll('[data-utility]').forEach(b=>b.classList.toggle('on',b.dataset.utility===mode));document.getElementById('reportBlock').hidden=mode!=='report';document.getElementById('materialBlock').hidden=mode!=='materials';document.getElementById('helpText').hidden=mode!=='help';}
+function exportBackup(){const d=new Date().toISOString().slice(0,10);downloadFile('작업기록_전체백업_'+d+'.json',JSON.stringify({format:'wk_fieldmap_backup',version:1,savedAt:new Date().toISOString(),data:DB}), 'application/json');toast('사진 포함 전체 백업 저장');}
+function downloadFile(name,txt,type){const url=URL.createObjectURL(new Blob([txt],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+async function importBackup(ev){const f=ev.target.files[0];if(!f)return;try{const backup=JSON.parse(await f.text());if(backup.format!=='wk_fieldmap_backup'||!backup.data||!backup.data.job||!Array.isArray(backup.data.extra))throw new Error('format');if(!confirm('백업 기록을 가져올까요? 같은 지시서의 현재 기록은 백업 기록으로 바뀝니다.'))return;const merged={...DB,job:{...DB.job,...backup.data.job},extra:[...new Map([...DB.extra,...backup.data.extra].map(x=>[x.id,x])).values()]};localStorage.setItem(LS,JSON.stringify(merged));DB=merged;renderAll();toast('백업 가져오기 완료');}catch(e){toast('백업 형식 또는 저장공간을 확인해주세요');}finally{ev.target.value='';}}
+window.addEventListener('resize',updateTopHeight);
+if(window.ResizeObserver)new ResizeObserver(updateTopHeight).observe(document.getElementById('appTop'));
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){closeEdit();closeUtility();toggleSidebar(false);setAddMode(false);document.getElementById('viewer').classList.remove('on');closeRoad();}if(ev.key==='Enter'&&ev.target.id==='jobSearch'){const shown=visibleJobs();if(shown.length)goMap(shown[0].code);}});
+
+  // jobs.js(오늘 작업목록)만 매일 교체 — 캐시 무시 로드
   (function(){
     const s=document.createElement('script');
     s.src='jobs.js?t='+Date.now();
     s.onload=boot;
-    s.onerror=function(){document.getElementById('list').innerHTML='<div class="hint">⚠️ jobs.js 를 못 불러왔어요. docs/jobs.js 가 올라갔는지 확인하세요.</div>';};
+    s.onerror=function(){document.getElementById('list').innerHTML='<div class="hint"> jobs.js 를 못 불러왔어요. docs/jobs.js 가 올라갔는지 확인하세요.</div>';};
     document.head.appendChild(s);
   })();
 </script>
